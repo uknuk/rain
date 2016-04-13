@@ -1,7 +1,7 @@
 var React = require('react'),
-    lib = require('./lib'),
+    lib = require('./lib.jsx'),
     _ = require('lodash'),
-    p = require('path');
+    path = require('path');
 
 module.exports = React.createClass({
   _fields: [
@@ -37,7 +37,7 @@ module.exports = React.createClass({
     );
   },
   _tick: function() {
-    var cmd =  "current-song-filename current-song-length current-song-output-length  current-song-bitrate-kbps",
+    var cmd = "current-song-filename current-song-length current-song-output-length current-song-bitrate-kbps",
         state = {},
         self = this,
         rest,
@@ -65,8 +65,8 @@ module.exports = React.createClass({
 
       rest = lines[0];
       _.each(['track', 'album', 'artist'], function(val) {
-		    name = p.basename(rest);
-		    rest = p.dirname(rest);
+		    name = path.basename(rest);
+		    rest = path.dirname(rest);
 		    if (self.props.data[val] != name) {
           self.props.update(val, name);
 		      state[val] = name;               
