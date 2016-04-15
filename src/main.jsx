@@ -8,12 +8,14 @@ var React = require('react'),
     lib = require('./lib.jsx');
 
 module.exports = React.createClass({
+  displayName: 'Main',
   getInitialState: function() {
     var buf =  fs.readFileSync(path.join(process.env['HOME'],'.nwaud'), 'utf8');
     return {
     	artist: null,
       album: null,
       track: null,
+      tracks: null,
       artists: {},
       showArtists: false,
       showSearch: false,
@@ -21,18 +23,19 @@ module.exports = React.createClass({
       };
   },
   componentDidMount: function() {
-    window.addEventListener("keypress", this._keyhandler, false);
+    window.addEventListener("keypress", this.keyhandler, false);
     this.getArtists();
   },
        
-  render: function() {    
+  render: function() {
+    artDir = this.state.artists[this.state.artists];
     return (
       <div>
         <Player data={_.clone(this.state)} update={this.update} />
 
         { this.renderTracks() }
 
-        <Albums artist={this.state.artist} update={this.update} />
+        <Albums artist={artDir} update={this.update} />
 
          {
            this.state.showSearch ? (
@@ -57,7 +60,7 @@ module.exports = React.createClass({
           <lib.Button key={n}
 						          color="green"
 						          name={art} limit="20"
-						          fun={function() { this.state.artist = val} }
+						          fun={function() { this.update({artist: val})} }
           />
         );
       });
@@ -66,9 +69,9 @@ module.exports = React.createClass({
 
   renderTracks: function() {
     if (this.state.showArtists || !this.state.tracks)
-      return;
+      return null;
 
-    return _.map(this.state.tracks, function(track, n) {
+    return _.map(this.state.tracks, _.bind(function(track, n) {
     	return (
       	<lib.Button key={n}
 			              color="red"
@@ -76,24 +79,23 @@ module.exports = React.createClass({
                     fun={_.partial(this.playTrack, n + 1)}
       	/>
       );
-    });
+    }, this));
   },
-    
-    
-  
+     
   keyhandler: function(e) {
+    console.log(e.which);
     if (e.ctrlKey) {
       switch(String.fromCharCode(96 + e.which)) {
         case 'w':
           if (this.state.showArtists)
-            this.update('showArtists', false);
+            this.update({showArtists: false});
           else {
             this.getArtists();
-            this.update('showArtists', true);
+            this.update({showArtists: true});
           }
           break;
         case 'z':
-          this._update('showSearch', true);
+          this._update({showSearch: true});
       };
     }
   },    
@@ -107,23 +109,16 @@ module.exports = React.createClass({
 	        arts[name] = path.join(dir, name) 
 	      });
     });
-    this.update('artists', arts);
+    console.log(arts);
+    this.setState({artists: arts});
   },
 
   playTrack: function(num) {
     lib.audtool('playlist-jump ' + num);
   },
     
-  update: function(key, val) {
-    if (key == 'album') {
-      this.setState({
-        tracks: fs.readdirSync(val)
-      });
-    }
-    
-    this.setState({
-      key: val
-    });
+  update: function(state) {
+    this.setState(state);
   }
   
 });

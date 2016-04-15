@@ -4,6 +4,7 @@ var React = require('react'),
     path = require('path');
 
 module.exports = React.createClass({
+  displayName: 'Player',
   _fields: [
     'artist', 'album', 'track', 'length', 'played', 'bitrate', 'status'
   ],
@@ -20,15 +21,27 @@ module.exports = React.createClass({
     return state;
   },
   componentDidMount: function() {
-    window.addEventListener("keypress", this._pause, false);
+    //window.addEventListener("keypress", this.pause, true);
     this.timer = setInterval(this._tick, 1000);
   },
+
+  shouldComponentUpdate(nextState, nextProps) {
+    console.log(nextProps);
+    return true;
+  },
+
+  componentWillUpdate: function() {
+    console.log(this.props.data);
+  },
+
+  
+  
   render: function() {
     return (
       <div>
         {
           _.map(this._fields, _.bind(function(key, n) {
-            return <span id={n} style = {{color: this._colours[key] || 'brown'}}>
+            return <span key={n} style = {{color: this._colours[key] || 'brown'}}>
               {(this.state[key] || '') + ' '}
             </span>
           }, this))
@@ -39,6 +52,7 @@ module.exports = React.createClass({
   _tick: function() {
     var cmd = "current-song-filename current-song-length current-song-output-length current-song-bitrate-kbps",
         state = {},
+        data = {},
         self = this,
         rest,
         name;
@@ -64,12 +78,13 @@ module.exports = React.createClass({
       }
 
       rest = lines[0];
-      _.each(['track', 'album', 'artist'], function(val) {
+      _.each(['track', 'album', 'artist'], function(key) {
 		    name = path.basename(rest);
 		    rest = path.dirname(rest);
-		    if (self.props.data[val] != name) {
-          self.props.update(val, name);
-		      state[val] = name;               
+		    if (self.state[key] != name) {
+          data[key] = state[key] = name;
+          if (key == 'track')
+            data.tracks = fs.readdirSync(rest);
         }
 	    });
 
@@ -79,11 +94,12 @@ module.exports = React.createClass({
       if (self.state.status == 'Silence')
       	state.status = null;
       self.setState(state);
-      
+      self.props.update(data);
     });  
   },
-  _pause: function(e) {
+  pause: function(e) {
     var self = this;
+    console.log(e.which);
     
     if (e.ctrlKey && String.fromCharCode(96 + e.which) == 'p')
       lib.audtool('playback-status', function(status) {

@@ -13,8 +13,9 @@ module.exports = React.createClass({
       played: null
     };
   },
-  componentDidMount: function() {
-    this.load(this.props.artist);
+  componentWillMount: function() {
+    if (this.props.artist)
+    	this.load(this.props.artist);
   },
 
   componentWillUpdate: function() {
@@ -24,7 +25,7 @@ module.exports = React.createClass({
     
   render: function() {
     var art = this.props.artist;
-    console.log(this.state);
+    //console.log(this.state);
     if (!this.state.shown)
       return null;
     
@@ -97,7 +98,7 @@ module.exports = React.createClass({
   },
 
   load: function(art) {
-  	var albs = fs.readdirSync(art),
+  	var albs = this.sort(fs.readdirSync(art)),
 				dirs = _.every(albs, function(alb) {
           return !fs.statSync(path.join(art,alb)).isDirectory()
         });
@@ -112,7 +113,7 @@ module.exports = React.createClass({
 
     this.setState({
       artist: art,
-      shown: this.sort(albs)
+      shown: albs
     });
 
     if (albs.length == 1)
