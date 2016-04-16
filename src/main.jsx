@@ -27,6 +27,7 @@ module.exports = React.createClass({
     this.getArtists();   
   },
 
+
   componentDidUpdate: function() {
     if (this.refs.search)
       this.refs.search.focus();
@@ -36,25 +37,20 @@ module.exports = React.createClass({
     return (
       <div>
         <Player data={_.clone(this.state)} update={this.update}  />
+        { this.renderTracks() }
+        <Albums artist={this.state.artists[this.state.artist]}
+                update={this.update} played={!this.showArtist}
+        />
+        { this.state.showArtists ? this.renderArtists() : null }
         {
-          this.state.showArtists ? this.renderArtists() :
-         (
-           <div>
-        	 { this.renderTracks() }
-				   <Albums artist={this.state.artists[this.state.artist]}
-           update={this.update} played={!this.showArtist} />
-
-           {
-             this.state.showSearch ? (
-               <Typeahead id="search"
-               options={_.keys(this.state.artists)}
-               onOptionSelected={this.selected}
-               />
-             ) : null
-           }
-           </div>
-         )
-         }
+          this.state.showSearch ? (
+            <Typeahead ref="search"
+            options={_.keys(this.state.artists)}
+            onOptionSelected={this.selected}
+            filterOption={this.match}
+            />
+          ) : null
+         }           
       </div>
     );
   },
@@ -94,7 +90,7 @@ module.exports = React.createClass({
       switch(String.fromCharCode(96 + e.which)) {
         case 'w':
           if (this.state.showArtists)
-            this.update({showArtists: false});
+            this.update({showArtists: false, artist: null});
           else {
             this.getArtists();
             this.update({showArtists: true});
@@ -131,7 +127,11 @@ module.exports = React.createClass({
       artist: opt,
       showSearch: false
     });
-  }   
+  },
+
+  match(input, opt) {
+    return _.startsWith(_.toLower(opt), _.toLower(input));
+  },
   
 });
   

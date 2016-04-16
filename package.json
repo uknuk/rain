@@ -3,12 +3,12 @@
   "private": true,
   "main": "index.html",
   "window": {
-    "toolbar": true,
+    "toolbar": false,
     "width": 1024,
     "height": 572
   },
   "scripts": {
-    "build": "browserify --bare -t [ babelify --presets [ react ] ] src/index.jsx -o build/app.js",
+    "build": "browserify --bare -t [ babelify --presets [ react ] ] src/index.jsx -o build/app.js; echo 'done'",
     "watch": "watch 'npm run build' src"
   },
   "dependencies": {

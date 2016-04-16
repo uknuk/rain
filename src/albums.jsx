@@ -20,22 +20,27 @@ module.exports = React.createClass({
   },
 
   componentWillUpdate: function() {
-    if (this.props.artist != this.state.artist)
+    if (this.props.artist && this.props.artist != this.state.artist)
       this.load();
   },            
     
   render: function() {
-    var art = this.props.artist,
+    var shown = this.state.shown,
+        art = this.props.artist || this.state.artist,
         self = this;
-    //console.log(this.state);
-    if (!this.state.shown)
+    
+    if (!art || !shown)
       return null;
+
+    if (art && art != this.state.artist)
+      shown = this.sort(fs.readdirSync(art));
+	  // state update in load can be too slow
     
     return (
       <div style={{color: 'blue'}}>
         {path.basename(art) + ':'}
         {
-          _.map(this.state.shown, function(alb, n) {
+          _.map(shown, function(alb, n) {
             var val = path.join(art, alb);
             return (
               <lib.Button

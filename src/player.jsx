@@ -69,7 +69,8 @@ module.exports = React.createClass({
       _.each(['track', 'album', 'artist'], function(key) {
 		    name = path.basename(rest);
 		    rest = path.dirname(rest);
-		    if (self.state[key] != name) {
+		    if (self.state[key] != name
+                        || (!self.props.data.showArtists && self.props.data[key] != name)) {
           data[key] = state[key] = name;
           if (key == 'track') {
             	data.tracks = fs.readdirSync(rest);
@@ -82,8 +83,10 @@ module.exports = React.createClass({
       });
       if (self.state.status == 'Silence')
       	state.status = null;
-      self.setState(state);
-      self.props.update(data);
+      if (!_.isEmpty(state))
+      	self.setState(state);
+      if (!_.isEmpty(data))
+      	self.props.update(data);
     });  
   },
   pause: function(e) {
