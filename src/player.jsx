@@ -21,20 +21,9 @@ module.exports = React.createClass({
     return state;
   },
   componentDidMount: function() {
-    //window.addEventListener("keypress", this.pause, true);
+    window.addEventListener("keypress", this.pause, true);
     this.timer = setInterval(this._tick, 1000);
-  },
-
-  shouldComponentUpdate(nextState, nextProps) {
-    console.log(nextProps);
-    return true;
-  },
-
-  componentWillUpdate: function() {
-    console.log(this.props.data);
-  },
-
-  
+  },  
   
   render: function() {
     return (
@@ -59,7 +48,6 @@ module.exports = React.createClass({
 
     lib.audtool(cmd, function(output) {
 	    var lines = output.split(/\n/);
-      //console.log(lines);
       if (lines[0] == 'No song playing.') {
 		    lib.execute('pgrep audacious', function(output) {
 		      if (output.length == 0) {
@@ -83,8 +71,9 @@ module.exports = React.createClass({
 		    rest = path.dirname(rest);
 		    if (self.state[key] != name) {
           data[key] = state[key] = name;
-          if (key == 'track')
-            data.tracks = fs.readdirSync(rest);
+          if (key == 'track') {
+            	data.tracks = fs.readdirSync(rest);
+          }
         }
 	    });
 
@@ -99,7 +88,6 @@ module.exports = React.createClass({
   },
   pause: function(e) {
     var self = this;
-    console.log(e.which);
     
     if (e.ctrlKey && String.fromCharCode(96 + e.which) == 'p')
       lib.audtool('playback-status', function(status) {

@@ -18,7 +18,7 @@ lib.audtool = function(cmd, callback) {
     
 lib.Button = function(props) {
   return (
-    <button key={props.key}
+    <button
             style={{ color: props.color, fontSize: '12px' }}
             onClick={props.fun}
             >

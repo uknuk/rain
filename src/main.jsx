@@ -24,43 +24,50 @@ module.exports = React.createClass({
   },
   componentDidMount: function() {
     window.addEventListener("keypress", this.keyhandler, false);
-    this.getArtists();
+    this.getArtists();   
+  },
+
+  componentDidUpdate: function() {
+    if (this.refs.search)
+      this.refs.search.focus();
   },
        
   render: function() {
-    artDir = this.state.artists[this.state.artists];
     return (
       <div>
-        <Player data={_.clone(this.state)} update={this.update} />
+        <Player data={_.clone(this.state)} update={this.update}  />
+        {
+          this.state.showArtists ? this.renderArtists() :
+         (
+           <div>
+        	 { this.renderTracks() }
+				   <Albums artist={this.state.artists[this.state.artist]}
+           update={this.update} played={!this.showArtist} />
 
-        { this.renderTracks() }
-
-        <Albums artist={artDir} update={this.update} />
-
-         {
-           this.state.showSearch ? (
-             <Typeahead
-          	 	options={_.keys(this.state.artists)}
-          	 	onOptionSelected={this.selected}
-             />
-           ) : null
-          }
-
-          { this.state.showArtists ? this.renderArtists() : null }
-        
+           {
+             this.state.showSearch ? (
+               <Typeahead id="search"
+               options={_.keys(this.state.artists)}
+               onOptionSelected={this.selected}
+               />
+             ) : null
+           }
+           </div>
+         )
+         }
       </div>
     );
   },
 
   renderArtists: function() {
+    var self = this;
     if (this.state.showArtists) {
       return _.map(_.keys(this.state.artists).sort(), function(art, n) {
-        var val = this.state.artists[art];
         return (
           <lib.Button key={n}
-						          color="green"
+						          color="blue"
 						          name={art} limit="20"
-						          fun={function() { this.update({artist: val})} }
+						          fun={_.partial(self.update, {artist: art}) }
           />
         );
       });
@@ -83,7 +90,6 @@ module.exports = React.createClass({
   },
      
   keyhandler: function(e) {
-    console.log(e.which);
     if (e.ctrlKey) {
       switch(String.fromCharCode(96 + e.which)) {
         case 'w':
@@ -95,7 +101,7 @@ module.exports = React.createClass({
           }
           break;
         case 'z':
-          this._update({showSearch: true});
+          this.update({showSearch: !this.state.showSearch});
       };
     }
   },    
@@ -109,7 +115,6 @@ module.exports = React.createClass({
 	        arts[name] = path.join(dir, name) 
 	      });
     });
-    console.log(arts);
     this.setState({artists: arts});
   },
 
@@ -119,7 +124,14 @@ module.exports = React.createClass({
     
   update: function(state) {
     this.setState(state);
-  }
+  },
+
+  selected: function(opt) {
+    this.setState({
+      artist: opt,
+      showSearch: false
+    });
+  }   
   
 });
   

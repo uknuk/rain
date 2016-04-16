@@ -6,31 +6,33 @@ var React = require('react'),
 
 
 module.exports = React.createClass({
+  displayName: 'Albums',
   getInitialState: function() {
     return {
       artist: null,
       shown: null,
-      played: null
+      played: null,
     };
   },
   componentWillMount: function() {
     if (this.props.artist)
-    	this.load(this.props.artist);
+    	this.load();
   },
 
   componentWillUpdate: function() {
     if (this.props.artist != this.state.artist)
-      this.load(this.props.artist);
+      this.load();
   },            
     
   render: function() {
-    var art = this.props.artist;
+    var art = this.props.artist,
+        self = this;
     //console.log(this.state);
     if (!this.state.shown)
       return null;
     
     return (
-      <div>
+      <div style={{color: 'blue'}}>
         {path.basename(art) + ':'}
         {
           _.map(this.state.shown, function(alb, n) {
@@ -40,7 +42,7 @@ module.exports = React.createClass({
               key={n}
               color="green"
 							name={alb} limit="40"
-              fun={_.partial(this.playAlbum, val)}
+              fun={_.partial(self.playAlbum, val)}
               />
             )
           })
@@ -65,14 +67,16 @@ module.exports = React.createClass({
   },
   
   playAlbum: function(alb) {
-    if (fs.statSync(album).isFile())
+    if (fs.statSync(alb).isFile())
 	  	this.play([alb]);
   	else
     	this.play(fs.readdirSync(alb), alb);
+
     this.setState({
       played: this.state.shown
-      });
-    this.props.update('showArtists', false)
+    });
+    
+    this.props.update({showArtists: false})
   },
   
   play: function(files, alb) {
@@ -90,32 +94,37 @@ module.exports = React.createClass({
 	      //show_track(n, track);
 	      if (n == tracks.length - 1)
 		      cmd += "; audtool playback-play";
-	      return execAsync(cmd);
+	      return lib.execAsync(cmd);
 	    }).catch(function(err) {
 	      console.log(err);
 	    });		  
-    }, execAsync('audtool playlist-clear'));      
+    }, lib.execAsync('audtool playlist-clear'));      
   },
 
-  load: function(art) {
-  	var albs = this.sort(fs.readdirSync(art)),
-				dirs = _.every(albs, function(alb) {
-          return !fs.statSync(path.join(art,alb)).isDirectory()
+  load: function() {
+  	var state = {},
+        art = this.props.artist,
+        albs = this.sort(fs.readdirSync(art)),
+				nodirs = _.every(albs, function(alb) {
+          return fs.statSync(path.join(art, alb)).isFile()
         });
+    	  // check if albs has at least one directory(album)
 
-    // check if albs has at least one directory(album)
-    // if not, play it art is also album
-
-		if (!dirs) {
-	    this.playAlbum(art);
-      return;
-    }        
-
-    this.setState({
+    state = {
       artist: art,
       shown: albs
-    });
+    };
 
+    if (this.props.played)
+      state.played = albs;
+
+    this.setState(state);
+    
+		if (nodirs) {
+	    this.playAlbum(art);
+      return;
+    }
+   
     if (albs.length == 1)
       this.playAlbum(path.join(art, albs[0]))
   }    
