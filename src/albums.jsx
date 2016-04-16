@@ -81,7 +81,10 @@ module.exports = React.createClass({
       played: this.state.shown
     });
     
-    this.props.update({showArtists: false})
+    this.props.update({
+      showArtists: false,
+      showSearch: false
+    })
   },
   
   play: function(files, alb) {

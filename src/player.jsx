@@ -70,7 +70,9 @@ module.exports = React.createClass({
 		    name = path.basename(rest);
 		    rest = path.dirname(rest);
 		    if (self.state[key] != name
-                        || (!self.props.data.showArtists && self.props.data[key] != name)) {
+                            || (self.props.data[key] != name &&
+                              !self.props.data.showArtists
+                              && !self.props.data.showSearch)) {
           data[key] = state[key] = name;
           if (key == 'track') {
             	data.tracks = fs.readdirSync(rest);

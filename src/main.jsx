@@ -48,6 +48,7 @@ module.exports = React.createClass({
             options={_.keys(this.state.artists)}
             onOptionSelected={this.selected}
             filterOption={this.match}
+            value=""
             />
           ) : null
          }           
@@ -123,10 +124,7 @@ module.exports = React.createClass({
   },
 
   selected: function(opt) {
-    this.setState({
-      artist: opt,
-      showSearch: false
-    });
+    this.setState({artist: opt});
   },
 
   match(input, opt) {
