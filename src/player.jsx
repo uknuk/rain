@@ -22,7 +22,7 @@ module.exports = React.createClass({
   },
   componentDidMount: function() {
     window.addEventListener("keypress", this.pause, true);
-    this.timer = setInterval(this._tick, 1000);
+    this.timer = setInterval(this.tick, 1000);
   },  
   
   render: function() {
@@ -38,7 +38,7 @@ module.exports = React.createClass({
     </div>
     );
   },
-  _tick: function() {
+  tick: function() {
     var cmd = "current-song-filename current-song-length current-song-output-length current-song-bitrate-kbps",
         state = {},
         data = {},
@@ -83,7 +83,7 @@ module.exports = React.createClass({
       _.each(['length', 'played', 'bitrate'], function(key, n) {
         state[key] = lines[n + 1];
       });
-      if (self.state.status == 'Silence')
+      if (self.state.status != 'Paused')
       	state.status = null;
       if (!_.isEmpty(state))
       	self.setState(state);

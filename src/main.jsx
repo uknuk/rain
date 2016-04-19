@@ -37,6 +37,7 @@ module.exports = React.createClass({
     return (
       <div>
         <Player data={_.clone(this.state)} update={this.update}  />
+        <p></p>
         { this.renderTracks() }
         <Albums artist={this.state.artists[this.state.artist]}
                 update={this.update} played={!this.showArtist}

@@ -38,7 +38,8 @@ module.exports = React.createClass({
     
     return (
       <div style={{color: 'blue'}}>
-        {path.basename(art) + ':'}
+        <p></p>
+        {path.basename(art) + ': '}
         {
           _.map(shown, function(alb, n) {
             var val = path.join(art, alb);
@@ -52,6 +53,7 @@ module.exports = React.createClass({
             )
           })
          }
+        <p></p>
       </div>
     );
   },
@@ -112,8 +114,6 @@ module.exports = React.createClass({
           return fs.statSync(path.join(art, alb)).isFile()
         });
     // check if albs has at least one directory(album)
-
-    console.log('Loading ' + art);
 
     state = {
       artist: art,
