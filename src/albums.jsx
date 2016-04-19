@@ -29,11 +29,16 @@ module.exports = React.createClass({
         art = this.props.artist || this.state.artist,
         self = this;
 
-    if (art && art != this.state.artist)
-      shown = this.sort(fs.readdirSync(art));
-	  // state update in load can be too slow
+    if (!art)
+      return null;
     
-    if (!art || !shown)
+		// state update in load can be too slow
+    if (art != this.state.artist)
+      shown = this.sort(fs.readdirSync(art));
+    else if (this.props.select)
+      return null;	  
+    
+    if (!shown)
       return null;   
     
     return (
@@ -120,7 +125,7 @@ module.exports = React.createClass({
       shown: albs
     };
 
-    if (this.props.played)
+    if (!this.props.select)
       state.played = albs;
 
     this.setState(state);

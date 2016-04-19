@@ -40,7 +40,7 @@ module.exports = React.createClass({
         <p></p>
         { this.renderTracks() }
         <Albums artist={this.state.artists[this.state.artist]}
-                update={this.update} played={!this.showArtist}
+                update={this.update} select={this.state.showArtists}
         />
         { this.state.showArtists ? this.renderArtists() : null }
         {
@@ -49,7 +49,7 @@ module.exports = React.createClass({
             options={_.keys(this.state.artists)}
             onOptionSelected={this.selected}
             filterOption={this.match}
-            value=""
+            defaultValue=""
             />
           ) : null
          }           
