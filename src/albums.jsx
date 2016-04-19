@@ -28,13 +28,13 @@ module.exports = React.createClass({
     var shown = this.state.shown,
         art = this.props.artist || this.state.artist,
         self = this;
-    
-    if (!art || !shown)
-      return null;
 
     if (art && art != this.state.artist)
       shown = this.sort(fs.readdirSync(art));
 	  // state update in load can be too slow
+    
+    if (!art || !shown)
+      return null;   
     
     return (
       <div style={{color: 'blue'}}>
@@ -75,7 +75,7 @@ module.exports = React.createClass({
     if (fs.statSync(alb).isFile())
 	  	this.play([alb]);
   	else
-    	this.play(fs.readdirSync(alb), alb);
+    	this.play(lib.read(alb), alb);
 
     this.setState({
       played: this.state.shown
@@ -87,12 +87,7 @@ module.exports = React.createClass({
     })
   },
   
-  play: function(files, alb) {
-    var ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
-        tracks = _.filter(files, function(file) {
-	        return ext.test(file);
-        });
- 	  
+  play: function(tracks, alb) {	  
     _.reduce(tracks, function(prom, track, n) {
 	    return prom.then(function() {
 	      var cmd = "audtool playlist-addurl \"";
@@ -116,7 +111,9 @@ module.exports = React.createClass({
 				nodirs = _.every(albs, function(alb) {
           return fs.statSync(path.join(art, alb)).isFile()
         });
-    	  // check if albs has at least one directory(album)
+    // check if albs has at least one directory(album)
+
+    console.log('Loading ' + art);
 
     state = {
       artist: art,

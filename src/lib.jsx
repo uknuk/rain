@@ -1,6 +1,7 @@
 var lib = exports,
 		cproc = require('child_process'),
     path = require('path'),
+    fs = require('fs'),
     React = require('react');
     
 lib.execute =  function(cmd, callback) {
@@ -15,6 +16,12 @@ lib.audtool = function(cmd, callback) {
     this.execute('audtool ' + cmd, callback);
 };
 
+lib.read = function(dir) {
+  var ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
+  return _.filter(fs.readdirSync(dir), function(file) {
+	  return ext.test(file);
+  });
+}
     
 lib.Button = function(props) {
   return (

@@ -75,7 +75,7 @@ module.exports = React.createClass({
                               && !self.props.data.showSearch)) {
           data[key] = state[key] = name;
           if (key == 'track') {
-            	data.tracks = fs.readdirSync(rest);
+            	data.tracks = lib.read(rest);
           }
         }
 	    });
