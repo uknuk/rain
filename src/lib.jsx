@@ -25,6 +25,21 @@ lib.current = function() {
   return this.audtool(cmd).split(/\n/);
 };
 
+lib.sort = function(albs) {
+  return _.sortBy(albs, function(alb) {
+    var year, added, re = /^\d{2}[\s+|_|-]/;
+    if (alb.substr(0,2) == 'M0')
+      return alb.replace('M0', '200');
+    year = alb.match(re);
+    if (year) {
+      added = year[0].substr(0,2) < 30 ? '20' + alb : '19' + alb;
+      return added;
+    }
+    // works until 2030 
+    return alb;
+  });
+};
+
 
 lib.fill = function(state, key, rest) {
   var name = path.basename(rest),
@@ -35,7 +50,7 @@ lib.fill = function(state, key, rest) {
   if (state[key] != name && !state.sel && !state.search) {
     if (key != 'art') {
       // album is file
-			if (key == 'track' && _.includes(_.values(state.arts), dir))
+			if (key == 'track' && _.includes(_.values(state.arts), rest))
     		return rest;
 
       if (!state[keys] &&  !state.sel && !state.search)
@@ -85,13 +100,20 @@ lib.play = function(files, alb) {
 
 
 lib.Info = function(props) {
-  return _.map(props.fields, function(key, n) {
-    return (
-      <span key={n} className={key}>
-        {(props.state[key] || '') + ' '}
-      </span>
-    );
-  });
+  return (
+    <div>
+      {
+        _.map(props.fields, function(key, n) {
+          return (
+            <span key={n} className={key}>
+            {(props.state[key] || '') + ' '}
+            </span>
+          )
+        })
+       }
+            <p></p>
+    </div>
+  );
 }
 
 lib.Tracks = function(props) {
@@ -100,21 +122,28 @@ lib.Tracks = function(props) {
   if (state.sel || !state.tracks)
     return null;
 
-  return _.map(state.tracks, function(track, n) {
-    return (
-      <lib.Button key={n}
-			            type = {n == props.state.trackNum ? "current" : "track"}
-                  name={track} limit="50"
-                  fun={function(n) { lib.audtool('playlist-jump ' + (n + 1)) }}
-      />
-    );
-  });
+  return (
+    <div>
+      {
+        _.map(state.tracks, function(track, n) {
+          return (
+            <lib.Button key={n}
+			      type = {n == props.state.trackNum ? "current" : "track"}
+            name={track} limit="50"
+            onClick = {function(n) { lib.audtool('playlist-jump ' + (n + 1)) }}
+            />
+          )
+        })
+       }
+            <p></p>
+    </div>
+  );      
 }
 
 lib.Albums = function(props) {
   var state = props.state;
   
-  if (!state.albs)
+  if (!state.albs || !state.showAlbs || !state.art)
     return null;
   
   return (
@@ -123,12 +152,12 @@ lib.Albums = function(props) {
       {path.basename(state.art) + ': '}
       {
         _.map(state.albs, function(alb, n) {
-          var val = path.join(state.art, alb);
+          var val = path.join(state.arts[state.art], alb);
           return (
             <lib.Button key={n} 
-            type = {n == state.albNum ? "current" : "alb"}
+            type = {n == state.albNum && !state.sel && !state.search ? "current" : "alb"}
 						name={alb} limit="40"
-            fun={_.partial(props.onClick, val)}
+            onClick = {_.partial(props.onClick, val)}
             />
           )
         })
@@ -139,17 +168,23 @@ lib.Albums = function(props) {
 }
 
 lib.Artists = function(props) {
-  if (!props.state.sel)
+  if (!props.sel)
     return null;
 
-  return _.map(_.keys(props.state.arts).sort(), function(art, n) {
-    return (
-      <lib.Button key={n} type="art"
-						      name={art} limit="20"
-						      fun={ _.partial(props.onClick, art)}
-      />
-    );
-  });
+  return (
+    <div>
+      {
+        _.map(_.keys(props.arts).sort(), function(art, n) {
+          return (
+            <lib.Button key={n} type="art"
+						name={art} limit="20"
+						onClick = { _.partial(props.onClick, art)}
+            />
+          )
+        })
+       }
+    </div>
+  );
 }
     
     

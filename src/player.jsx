@@ -1,7 +1,9 @@
 var React = require('react'),
+    Typeahead = require('react-typeahead').Typeahead,
     lib = require('./lib.jsx'),
     _ = require('lodash'),
     cproc = require('child_process'),
+    fs = require('fs'),
     path = require('path');
 
 module.exports = React.createClass({
@@ -10,17 +12,23 @@ module.exports = React.createClass({
   ],
   
   getInitialState: function() {
-    var state = {};
-    _.each(this._fields, function(key) {
+    var state = {
+      sel: false,
+      search: false,
+      showAlbs: true
+    };
+
+    _.each(this.fields, function(key) {
       state[key] = null;
     });
+
     return state;
   },
   
   componentDidMount: function() {
     window.addEventListener("keypress", this.keyhandler(), true);
     this.timer = setInterval(this.current, 1000);
-    setState({arts: lib.load()});
+    this.setState({arts: lib.load()});
   },
 
   componentDidUpdate: function() {
@@ -32,10 +40,9 @@ module.exports = React.createClass({
     return (
       <div>
         <lib.Info fields={this.fields} state={this.state} />
-        <p></p>
         <lib.Tracks state={this.state} />
         <lib.Albums state={this.state} onClick={this.playAlbum} />
-        <lib.Artists state={this.state} onClick={this.selected} />
+        <lib.Artists sel={this.state.sel} arts={this.state.arts} onClick={this.selected} />
         <p></p>
         {
           this.state.search ? (
@@ -43,7 +50,6 @@ module.exports = React.createClass({
             options={_.keys(this.state.arts)}
             onOptionSelected={this.selected}
             filterOption={this.match}
-            defaultValue= " "
             />
           ) : null
          }           
@@ -52,7 +58,7 @@ module.exports = React.createClass({
   },
   
   current: function() {
-    var state = _clone(this.state),
+    var state = _.clone(this.state),
         lines = lib.current(),
         rest = lines[0];
 
@@ -74,9 +80,13 @@ module.exports = React.createClass({
       state.status = null;
 
     rest = lines[0];
-    _.each(['track', 'album', 'artist'], function(key) {
+    _.each(['track', 'alb', 'art'], function(key) {
       rest = lib.fill(state, key, rest);
     });
+
+    _.each(['length', 'played', 'bitrate'], function(key, n) {
+      	state[key] = lines[n + 1]
+    });   
 
     this.setState(state);
   },
@@ -85,10 +95,14 @@ module.exports = React.createClass({
     var self = this,
         fmap = {
           w: function() {
-            if (self.sel)
-              self.setState({ sel: false, art: null });
+            if (self.state.sel)
+              self.setState({ sel: false, art: null, showAlbs: true });
             else
-              self.setState({ sel: true, arts: lib.load() });
+              self.setState({
+                sel: true,
+                showAlbs: false,
+                arts: lib.load()
+              });
           },
           p: function() {
             var cmd = lib.audtool('playback-status') == "playing\n" ? 'pause' : 'play';   
@@ -115,21 +129,23 @@ module.exports = React.createClass({
 	
   selected: function(art) {
     var nodirs,
-        state = _.clone(this.state);
+        state = _.clone(this.state),
+        artdir = state.arts[art];
 
     state.art = art;
-    state.albs = lib.sort(fs.readdirSync(art));
+    state.showAlbs = true;
+    state.albs = lib.sort(fs.readdirSync(artdir));
     nodirs = _.every(state.albs, function(alb) {
-      return fs.statSync(path.join(art, alb)).isFile()
+      return fs.statSync(path.join(artdir, alb)).isFile()
     });
     // check if albs has at least one directory(album)
     
     // if not, play it art is also album
     if (nodirs) {
-      this.playAlbum(art, state);
+      this.playAlbum(artdir, state);
     }
     else if (state.albs.length == 1)
-      this.playAlbum(path.join(art, state.albs[0]), state);
+      this.playAlbum(path.join(artdir, state.albs[0]), state);
         
     this.setState(state);
   },
@@ -149,13 +165,16 @@ module.exports = React.createClass({
     else
       lib.play(fs.readdirSync(alb), alb);
     
-    if (state) 
-    	state.sel = state.search = false;
-    else
+    if (state.type == 'click') // onClick
       this.setState({
         sel: false,
-        search: false
+        search: false,
+        tracks: null
       });
-  },
+    else {    
+      state.sel = state.search = false;
+      state.tracks = null;
+    }
+  }
 
 });
