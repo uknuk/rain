@@ -15,12 +15,16 @@ module.exports = React.createClass({
     var state = {
       sel: false,
       search: false,
-      showAlbs: true
+      showAlbs: true,
+      
     };
 
     _.each(this.fields, function(key) {
       state[key] = null;
     });
+
+    if (lib.isStatus('paused'))
+      state.status = 'Paused';
 
     return state;
   },
@@ -63,7 +67,7 @@ module.exports = React.createClass({
         rest = lines[0];
 
     if (rest == 'No song playing.') {
-      if (!lib.exec('pgrep audacious')) {
+      if (lib.isStatus('stopped')) {
         state.status = 'Starting audacious';
         cproc.exec('audacious -h &');
       }
@@ -85,7 +89,7 @@ module.exports = React.createClass({
     });
 
     _.each(['length', 'played', 'bitrate'], function(key, n) {
-      	state[key] = lines[n + 1]
+        state[key] = lines[n + 1]
     });   
 
     this.setState(state);
@@ -105,14 +109,14 @@ module.exports = React.createClass({
               });
           },
           p: function() {
-            var cmd = lib.audtool('playback-status') == "playing\n" ? 'pause' : 'play';   
+            var cmd = lib.isStatus('playing') ? 'pause' : 'play';   
             lib.audtool('playback-' + cmd);
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
             });
           },
           z: function() {
-      		  self.setState({search: !self.state.search});
+            self.setState({search: !self.state.search});
           },
         };
 
@@ -126,7 +130,7 @@ module.exports = React.createClass({
       }
     };
   },
-	
+  
   selected: function(art) {
     var nodirs,
         state = _.clone(this.state),
@@ -169,11 +173,12 @@ module.exports = React.createClass({
       this.setState({
         sel: false,
         search: false,
-        tracks: null
+        tracks: null,
+        status: null
       });
     else {    
       state.sel = state.search = false;
-      state.tracks = null;
+      state.tracks = self.status = null;
     }
   }
 

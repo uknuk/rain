@@ -1,22 +1,18 @@
 var lib = exports,
-		cproc = require('child_process'),
+    cproc = require('child_process'),
     path = require('path'),
     fs = require('fs'),
     path = require('path'),
     ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
     React = require('react');
     
-lib.exec = function(cmd) {
-  try {
-    return cproc.execSync(cmd).toString();
-  }
-  catch (err) {
-    return null;
-  }
-};
 
 lib.audtool = function(cmd) {
-    return this.exec('audtool ' + cmd);
+    return cproc.execSync('audtool ' + cmd).toString();
+};
+
+lib.isStatus = function(status) {
+  return this.audtool('playback-status') == status + '\n'
 };
 
 lib.current = function() {
@@ -43,20 +39,20 @@ lib.sort = function(albs) {
 
 lib.fill = function(state, key, rest) {
   var name = path.basename(rest),
-  		keys = key + 's';
+      keys = key + 's';
 
   rest = path.dirname(rest);
 
   if (state[key] != name && !state.sel && !state.search) {
     if (key != 'art') {
       // album is file
-			if (key == 'track' && _.includes(_.values(state.arts), rest))
-    		return rest;
+      if (key == 'track' && _.includes(_.values(state.arts), rest))
+        return rest;
 
       if (!state[keys] &&  !state.sel && !state.search)
-    		state[keys] = fs.readdirSync(rest);
+        state[keys] = fs.readdirSync(rest);
 
-   		state[key + 'Num'] = _.indexOf(state[keys], name);
+      state[key + 'Num'] = _.indexOf(state[keys], name);
     }
     state[key] = name;
   }
@@ -128,7 +124,7 @@ lib.Tracks = function(props) {
         _.map(state.tracks, function(track, n) {
           return (
             <lib.Button key={n}
-			      type = {n == props.state.trackNum ? "current" : "track"}
+            type = {n == props.state.trackNum ? "current" : "track"}
             name={track} limit="50"
             onClick = {function(n) { lib.audtool('playlist-jump ' + (n + 1)) }}
             />
@@ -156,7 +152,7 @@ lib.Albums = function(props) {
           return (
             <lib.Button key={n} 
             type = {n == state.albNum && !state.sel && !state.search ? "current" : "alb"}
-						name={alb} limit="40"
+            name={alb} limit="40"
             onClick = {_.partial(props.onClick, val)}
             />
           )
@@ -177,8 +173,8 @@ lib.Artists = function(props) {
         _.map(_.keys(props.arts).sort(), function(art, n) {
           return (
             <lib.Button key={n} type="art"
-						name={art} limit="20"
-						onClick = { _.partial(props.onClick, art)}
+            name={art} limit="20"
+            onClick = { _.partial(props.onClick, art)}
             />
           )
         })
