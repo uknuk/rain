@@ -1,107 +1,161 @@
 var React = require('react'),
     lib = require('./lib.jsx'),
     _ = require('lodash'),
+    cproc = require('child_process'),
     path = require('path');
 
 module.exports = React.createClass({
-  displayName: 'Player',
-  _fields: [
-    'artist', 'album', 'track', 'length', 'played', 'bitrate', 'status'
+  fields: [
+    'art', 'alb', 'track', 'length', 'played', 'bitrate', 'status'
   ],
-  _colours: {
-    artist: 'blue',
-    album:  'green',
-    track:  'red',
-  },  
+  
   getInitialState: function() {
     var state = {};
-    _.each(this._fields, function(val) {
-      state[val] = null;
+    _.each(this._fields, function(key) {
+      state[key] = null;
     });
     return state;
   },
+  
   componentDidMount: function() {
-    window.addEventListener("keypress", this.pause, true);
-    this.timer = setInterval(this.tick, 1000);
-  },  
+    window.addEventListener("keypress", this.keyhandler(), true);
+    this.timer = setInterval(this.current, 1000);
+    setState({arts: lib.load()});
+  },
+
+  componentDidUpdate: function() {
+    if (this.refs.search)
+      this.refs.search.focus();
+  },
   
   render: function() {
     return (
       <div>
+        <lib.Info fields={this.fields} state={this.state} />
+        <p></p>
+        <lib.Tracks state={this.state} />
+        <lib.Albums state={this.state} onClick={this.playAlbum} />
+        <lib.Artists state={this.state} onClick={this.selected} />
+        <p></p>
         {
-          _.map(this._fields, _.bind(function(key, n) {
-            return <span key={n} style = {{color: this._colours[key] || 'brown'}}>
-              {(this.state[key] || '') + ' '}
-            </span>
-          }, this))
-         }
-    </div>
+          this.state.search ? (
+            <Typeahead ref="search"
+            options={_.keys(this.state.arts)}
+            onOptionSelected={this.selected}
+            filterOption={this.match}
+            defaultValue= " "
+            />
+          ) : null
+         }           
+      </div>
     );
   },
-  tick: function() {
-    var cmd = "current-song-filename current-song-length current-song-output-length current-song-bitrate-kbps",
-        state = {},
-        data = {},
-        self = this,
-        rest,
-        name;
+  
+  current: function() {
+    var state = _clone(this.state),
+        lines = lib.current(),
+        rest = lines[0];
 
-    lib.audtool(cmd, function(output) {
-	    var lines = output.split(/\n/);
-      if (lines[0] == 'No song playing.') {
-		    lib.execute('pgrep audacious', function(output) {
-		      if (output.length == 0) {
-            state.status = 'Starting audacious';
-			      lib.execute('audacious -h &');
-		      }
-		      else {
-            _.each(self.state, function(val, key) {
-              state[key] = null;
-            });
-		      	state.status = 'Silence';
-		      }
-          self.setState(state);
-		    });
-        return;
+    if (rest == 'No song playing.') {
+      if (!lib.exec('pgrep audacious')) {
+        state.status = 'Starting audacious';
+        cproc.exec('audacious -h &');
       }
+      else {
+        state.status = 'Silence';
+        if (state.albs && state.alb)
+          this.playNext(state)             
+      }
+      this.setState(state);
+      return;
+    }
 
-      rest = lines[0];
-      _.each(['track', 'album', 'artist'], function(key) {
-		    name = path.basename(rest);
-		    rest = path.dirname(rest);
-		    if (self.state[key] != name
-                            || (self.props.data[key] != name &&
-                              !self.props.data.showArtists
-                              && !self.props.data.showSearch)) {
-          data[key] = state[key] = name;
-          if (key == 'track') {
-            	data.tracks = lib.read(rest);
-          }
-        }
-	    });
+    if (state.status != 'Paused')
+      state.status = null;
 
-      _.each(['length', 'played', 'bitrate'], function(key, n) {
-        state[key] = lines[n + 1];
-      });
-      if (self.state.status != 'Paused')
-      	state.status = null;
-      if (!_.isEmpty(state))
-      	self.setState(state);
-      if (!_.isEmpty(data))
-      	self.props.update(data);
-    });  
+    rest = lines[0];
+    _.each(['track', 'album', 'artist'], function(key) {
+      rest = lib.fill(state, key, rest);
+    });
+
+    this.setState(state);
   },
-  pause: function(e) {
-    var self = this;
+
+  keyhandler: function() {
+    var self = this,
+        fmap = {
+          w: function() {
+            if (self.sel)
+              self.setState({ sel: false, art: null });
+            else
+              self.setState({ sel: true, arts: lib.load() });
+          },
+          p: function() {
+            var cmd = lib.audtool('playback-status') == "playing\n" ? 'pause' : 'play';   
+            lib.audtool('playback-' + cmd);
+            self.setState({
+              status: cmd == 'pause' ? 'Paused' : null
+            });
+          },
+          z: function() {
+      		  self.setState({search: !self.state.search});
+          },
+        };
+
+    return function(e) {
+      if (e.ctrlKey) {
+        var key = String.fromCharCode(96 + e.which);
+        if (_.has(fmap, key)) {
+          fmap[key]();
+          e.preventDefault();
+        }
+      }
+    };
+  },
+	
+  selected: function(art) {
+    var nodirs,
+        state = _.clone(this.state);
+
+    state.art = art;
+    state.albs = lib.sort(fs.readdirSync(art));
+    nodirs = _.every(state.albs, function(alb) {
+      return fs.statSync(path.join(art, alb)).isFile()
+    });
+    // check if albs has at least one directory(album)
     
-    if (e.ctrlKey && String.fromCharCode(96 + e.which) == 'p')
-      lib.audtool('playback-status', function(status) {
-		    var cmd = status == "playing\n" ? 'pause' : 'play';		
-		    lib.audtool('playback-' + cmd);
-        self.setState({
-            status: cmd == 'pause' ? 'Paused' : null
-          });
-	    });
-  }
+    // if not, play it art is also album
+    if (nodirs) {
+      this.playAlbum(art, state);
+    }
+    else if (state.albs.length == 1)
+      this.playAlbum(path.join(art, state.albs[0]), state);
+        
+    this.setState(state);
+  },
+
+  match(input, opt) {
+    return _.startsWith(_.toLower(opt), _.toLower(input));
+  },
+
+  playNext: function(state) {
+    var alb = path.join(state.arts[state.art], state.albs[++state.albNum])
+    this.playAlbum(alb, state);
+  },
+
+  playAlbum: function(alb, state) {
+    if (fs.statSync(alb).isFile())
+      lib.play([alb]);
+    else
+      lib.play(fs.readdirSync(alb), alb);
+    
+    if (state) 
+    	state.sel = state.search = false;
+    else
+      this.setState({
+        sel: false,
+        search: false
+      });
+  },
 
 });
