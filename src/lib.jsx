@@ -5,14 +5,23 @@ var lib = exports,
     path = require('path'),
     ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
     React = require('react');
-    
 
-lib.audtool = function(cmd) {
-    return cproc.execSync('audtool ' + cmd).toString();
+lib.isStopped = function() {
+  try {
+    cproc.execSync('pgrep audacious');
+    return false
+  }
+  catch (err) {
+    return true;
+  }
 };
 
-lib.isStatus = function(status) {
-  return this.audtool('playback-status') == status + '\n'
+lib.audtool = function(cmd) {
+  return cproc.execSync('audtool ' + cmd).toString();
+};
+
+lib.isPaused = function() {
+  return this.audtool('playback-status') == 'paused\n'
 };
 
 lib.current = function() {
@@ -126,7 +135,7 @@ lib.Tracks = function(props) {
             <lib.Button key={n}
             type = {n == props.state.trackNum ? "current" : "track"}
             name={track} limit="50"
-            onClick = {function(n) { lib.audtool('playlist-jump ' + (n + 1)) }}
+            onClick = {_.partial(function(n) { lib.audtool('playlist-jump ' + (n + 1)) }, n)}
             />
           )
         })

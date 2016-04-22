@@ -15,15 +15,14 @@ module.exports = React.createClass({
     var state = {
       sel: false,
       search: false,
-      showAlbs: true,
-      
+      showAlbs: true,     
     };
 
     _.each(this.fields, function(key) {
       state[key] = null;
     });
 
-    if (lib.isStatus('paused'))
+    if (lib.isPaused())
       state.status = 'Paused';
 
     return state;
@@ -67,7 +66,7 @@ module.exports = React.createClass({
         rest = lines[0];
 
     if (rest == 'No song playing.') {
-      if (lib.isStatus('stopped')) {
+      if (lib.isStopped()) {
         state.status = 'Starting audacious';
         cproc.exec('audacious -h &');
       }
@@ -109,7 +108,7 @@ module.exports = React.createClass({
               });
           },
           p: function() {
-            var cmd = lib.isStatus('playing') ? 'pause' : 'play';   
+            var cmd = lib.isPaused() ? 'play' : 'pause';   
             lib.audtool('playback-' + cmd);
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
