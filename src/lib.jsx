@@ -6,12 +6,13 @@ var lib = exports,
     ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
     React = require('react');
 
-lib.isStopped = function() {
+lib.isStart = function() {
   try {
     cproc.execSync('pgrep audacious');
     return false
   }
   catch (err) {
+    cproc.exec('audacious -h &');
     return true;
   }
 };
@@ -28,6 +29,10 @@ lib.current = function() {
   var cmd = '%filename %length %output-length %bitrate-kbps'
       .replace(/%/g, 'current-song-');
   return this.audtool(cmd).split(/\n/);
+};
+
+lib.jump = function(n) {
+  lib.audtool('playlist-jump ' + n);
 };
 
 lib.sort = function(albs) {
@@ -135,7 +140,7 @@ lib.Tracks = function(props) {
             <lib.Button key={n}
             type = {n == props.state.trackNum ? "current" : "track"}
             name={track} limit="50"
-            onClick = {_.partial(function(n) { lib.audtool('playlist-jump ' + (n + 1)) }, n)}
+            onClick = {_.partial(lib.jump, n + 1) }
             />
           )
         })
@@ -191,8 +196,7 @@ lib.Artists = function(props) {
     </div>
   );
 }
-    
-    
+     
 lib.Button = function(props) {
   return (
     <button onClick={props.onClick} className={props.type} >

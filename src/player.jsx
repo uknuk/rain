@@ -2,7 +2,6 @@ var React = require('react'),
     Typeahead = require('react-typeahead').Typeahead,
     lib = require('./lib.jsx'),
     _ = require('lodash'),
-    cproc = require('child_process'),
     fs = require('fs'),
     path = require('path');
 
@@ -66,12 +65,10 @@ module.exports = React.createClass({
         rest = lines[0];
 
     if (rest == 'No song playing.') {
-      if (lib.isStopped()) {
+      if (lib.isStart())
         state.status = 'Starting audacious';
-        cproc.exec('audacious -h &');
-      }
       else {
-        state.status = 'Silence';
+        state.status = 'Stopped';
         if (state.albs && state.alb)
           this.playNext(state)             
       }
