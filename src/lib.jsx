@@ -3,7 +3,6 @@ var lib = exports,
     path = require('path'),
     fs = require('fs'),
     path = require('path'),
-    ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
     React = require('react');
 
 lib.isStart = function() {
@@ -50,25 +49,38 @@ lib.sort = function(albs) {
   });
 };
 
+lib.isArtdir = function(state, dir) {
+  return  _.includes(_.values(state.arts), dir);
+}
+
+lib.strip = function(name) {
+  return path.basename(name, path.extname(name));
+};
+ 
 
 lib.fill = function(state, key, rest) {
   var name = path.basename(rest),
       keys = key + 's';
 
-  rest = path.dirname(rest);
+  if ((key == 'art' && !lib.isArtdir(state, rest)) ||
+      (key == 'alb' && state['alb'] === lib.strip(state['track'])))
+    return;
+  // album is file
+
+  rest = path.dirname(rest);  
 
   if (state[key] != name && !state.sel && !state.search) {
+    state[key] = name;
     if (key != 'art') {
       // album is file
-      if (key == 'track' && _.includes(_.values(state.arts), rest))
-        return rest;
+      if (key == 'track' && lib.isArtdir(state, rest))
+        return path.join(rest, lib.strip(name));
 
       if (!state[keys] &&  !state.sel && !state.search)
         state[keys] = fs.readdirSync(rest);
 
       state[key + 'Num'] = _.indexOf(state[keys], name);
     }
-    state[key] = name;
   }
   return rest;
 }
@@ -90,10 +102,11 @@ lib.load = function() {
   };
 }();
 
-lib.play = function(files, alb) {
-  var tracks = _.filter(files, function(file) {
-    return ext.test(file);
-  });
+lib.play = function(files, alb) {  
+  var ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
+      tracks = _.filter(files, function(file) {
+        return ext.test(file);
+      });
 
   lib.audtool('playlist-clear'); 
   
@@ -200,7 +213,7 @@ lib.Artists = function(props) {
 lib.Button = function(props) {
   return (
     <button onClick={props.onClick} className={props.type} >
-      {props.name.replace(path.extname(props.name),'').substring(0, props.limit)}
+      {lib.strip(props.name).substring(0, props.limit)}
     </button>
   );
 };
