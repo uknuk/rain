@@ -69,14 +69,14 @@ lib.fill = function(state, key, rest) {
 
   rest = path.dirname(rest);  
 
-  if (state[key] != name && !state.sel && !state.search) {
+  if (state[key] != name && !state.sel) {
     state[key] = name;
     if (key != 'art') {
       // album is file
       if (key == 'track' && lib.isArtdir(state, rest))
         return path.join(rest, lib.strip(name));
 
-      if (!state[keys] &&  !state.sel && !state.search)
+      if (!state[keys] &&  !state.sel)
         state[keys] = fs.readdirSync(rest);
 
       state[key + 'Num'] = _.indexOf(state[keys], name);
@@ -178,7 +178,7 @@ lib.Albums = function(props) {
           var val = path.join(state.arts[state.art], alb);
           return (
             <lib.Button key={n} 
-            type = {n == state.albNum && !state.sel && !state.search ? "current" : "alb"}
+            type = {n == state.albNum && !state.sel ? "current" : "alb"}
             name={alb} limit="40"
             onClick = {_.partial(props.onClick, val)}
             />

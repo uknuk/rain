@@ -13,7 +13,6 @@ module.exports = React.createClass({
   getInitialState: function() {
     var state = {
       sel: false,
-      search: false,
       showAlbs: true,
       
     };
@@ -34,10 +33,6 @@ module.exports = React.createClass({
     this.setState({arts: lib.load()});
   },
 
-  componentDidUpdate: function() {
-    if (this.refs.search)
-      this.refs.search.focus();
-  },
   
   render: function() {
     return (
@@ -47,16 +42,6 @@ module.exports = React.createClass({
         <lib.Albums state={this.state} onClick={this.playAlbum} />
         {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
         <lib.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
-        <p></p>
-        {
-          this.state.search ? (
-            <Typeahead ref="search"
-            options={_.keys(this.state.arts)}
-            onOptionSelected={this.selected}
-            filterOption={this.match}
-            />
-          ) : null
-         }           
       </div>
     );
   },
@@ -113,10 +98,7 @@ module.exports = React.createClass({
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
             });
-          },
-          z: function() {
-            self.setState({search: !self.state.search});
-          },
+          }
         };
 
     return function(e) {
@@ -171,12 +153,11 @@ module.exports = React.createClass({
     if (state.type == 'click') // onClick
       this.setState({
         sel: false,
-        search: false,
         tracks: null,
         status: null
       });
     else {    
-      state.sel = state.search = false;
+      state.sel  = false;
       state.tracks = self.status = null;
     }
   },
