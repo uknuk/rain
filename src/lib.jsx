@@ -197,7 +197,7 @@ lib.Artists = function(props) {
   return (
     <div>
       {
-        _.map(_.keys(props.arts).sort(), function(art, n) {
+        _.map(props.arts.sort(), function(art, n) {
           return (
             <lib.Button key={n} type="art"
             name={art} limit="20"

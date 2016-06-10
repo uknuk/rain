@@ -14,7 +14,8 @@ module.exports = React.createClass({
     var state = {
       sel: false,
       search: false,
-      showAlbs: true,     
+      showAlbs: true,
+      
     };
 
     _.each(this.fields, function(key) {
@@ -44,7 +45,8 @@ module.exports = React.createClass({
         <lib.Info fields={this.fields} state={this.state} />
         <lib.Tracks state={this.state} />
         <lib.Albums state={this.state} onClick={this.playAlbum} />
-        <lib.Artists sel={this.state.sel} arts={this.state.arts} onClick={this.selected} />
+        {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
+        <lib.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
         <p></p>
         {
           this.state.search ? (
@@ -101,6 +103,7 @@ module.exports = React.createClass({
               self.setState({
                 sel: true,
                 showAlbs: false,
+                chosen: null,
                 arts: lib.load()
               });
           },
@@ -176,6 +179,17 @@ module.exports = React.createClass({
       state.sel = state.search = false;
       state.tracks = self.status = null;
     }
+  },
+
+  filter: function(ev) {
+    var chosen = _.filter(_.keys(this.state.arts), function(art) {
+          return _.startsWith(_.toLower(art), ev.target.value);
+        });
+
+    if (chosen.length == 1)
+      this.selected(chosen[0]);
+    
+    this.setState({chosen: chosen});
   }
 
 });
