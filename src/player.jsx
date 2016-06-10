@@ -1,5 +1,4 @@
 var React = require('react'),
-    Typeahead = require('react-typeahead').Typeahead,
     lib = require('./lib.jsx'),
     _ = require('lodash'),
     fs = require('fs'),
