@@ -13,14 +13,13 @@ module.exports = React.createClass({
     var state = {
       sel: false,
       showAlbs: true,
-
     };
 
     _.each(this.fields, function(key) {
       state[key] = null;
     });
 
-    if (lib.isPaused())
+    if (lib.isLinux && lib.isPaused())
       state.status = 'Paused';
 
     return state;
@@ -28,7 +27,10 @@ module.exports = React.createClass({
 
   componentDidMount: function() {
     window.addEventListener("keypress", this.keyhandler(), true);
-    this.timer = setInterval(this.current, 1000);
+
+    if (lib.isLinux)
+      this.timer = setInterval(this.current, 1000);
+
     this.setState({arts: lib.load()});
   },
 
@@ -37,7 +39,7 @@ module.exports = React.createClass({
     return (
       <div>
         <lib.Info fields={this.fields} state={this.state} />
-        <lib.Tracks state={this.state} />
+        <lib.Tracks state={this.state} onClick={this.jump}/>
         <lib.Albums state={this.state} onClick={this.playAlbum} />
         {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
         <lib.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
@@ -144,22 +146,41 @@ module.exports = React.createClass({
   },
 
   playAlbum: function(alb, state) {
-    if (fs.statSync(alb).isFile())
-      lib.play([alb]);
-    else
-      lib.play(fs.readdirSync(alb), alb);
+    if (state.type == 'click') // onClick, event as state
+      state = _.clone(this.state);
 
-    if (state.type == 'click') // onClick
-      this.setState({
-        sel: false,
-        tracks: null,
-        status: null
-      });
-    else {
-      state.sel  = false;
-      state.tracks = self.status = null;
-    }
+    state.trackNum = 0;
+    state.tracks = lib.tracks(alb);
+    state.track = state.tracks[0];
+    state.albPath = alb;
+    state.alb = path.basename(alb);
+    state.sel = false;
+
+    this.setState(state);
+    this.playTrack(path.join(alb, state.track));
   },
+
+  playTrack: function(track, num) {
+    if (!track) {
+      if (!num)
+        num = this.state.trackNum + 1;
+      
+      if (num < this.state.tracks.length)
+        track = path.join(this.state.albPath, this.state.tracks[num]);
+    }
+    else
+      num = 0;
+    
+    console.log(track);
+    lib.play(track, this.playTrack);
+    this.setState({trackNum: num, track: path.basename(track)});
+  },
+
+  jump: function(num) {
+    this.setState({trackNum: num - 1});
+    lib.stop()
+  },
+
 
   filter: function(ev) {
     var chosen = _.filter(_.keys(this.state.arts), function(art) {

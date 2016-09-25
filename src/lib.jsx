@@ -1,9 +1,13 @@
 var lib = exports,
     cproc = require('child_process'),
     path = require('path'),
+    _ = require('lodash'),
     fs = require('fs'),
     path = require('path'),
-    React = require('react');
+    React = require('react'),
+    ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
+
+lib.isLinux = process.env._system_type == 'linux';
 
 lib.isStart = function() {
   try {
@@ -86,7 +90,7 @@ lib.fill = function(state, key, rest) {
 }
 
 lib.load = function() {
-  var buf = fs.readFileSync(path.join(process.env['HOME'],'.nwaud'), 'utf8'),
+  var buf = fs.readFileSync(path.join(process.env['HOME'],'.mhdirs'), 'utf8'),
       roots = buf.replace(/\n+/,'').split(/\s+/);
 
   return function() {
@@ -102,24 +106,26 @@ lib.load = function() {
   };
 }();
 
-lib.play = function(files, alb) {
-  var ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
-      tracks = _.filter(files, function(file) {
-        return ext.test(file);
-      });
+lib.tracks = function(alb) {
+  if (fs.statSync(alb).isFile())
+    return [alb];
+  else
+    return _.filter(fs.readdirSync(alb), function(file) {
+      return ext.test(file);
+    });
+}
 
-  lib.audtool('playlist-clear');
-
-  _.each(tracks, function(track) {
-    var cmd = "playlist-addurl \"";
-    if (alb)
-      cmd += alb + "/";
-    cmd += track + "\"";
-    lib.audtool(cmd);
+lib.play = function(track, callback) {
+  var cmd = this.isLinux ? "audacious -hqE '" : "afplay '";
+  cproc.exec(cmd + track + "'", function(err, stdout, stderr) {
+    callback();
   });
+}
 
-  lib.audtool('playback-play');
-};
+lib.stop = function() {
+  var cmd = this.isLinux ? 'audacious' : 'afplay';
+  cproc.execSync("pkill " + cmd);
+}
 
 
 lib.Info = function(props) {
@@ -153,7 +159,7 @@ lib.Tracks = function(props) {
             <lib.Button key={n}
             type = {n == props.state.trackNum ? "current" : "track"}
             name={track} limit="50"
-            onClick = {_.partial(lib.jump, n + 1) }
+            onClick = {_.partial(props.onClick, n) }
             />
           )
         })
