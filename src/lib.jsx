@@ -44,7 +44,7 @@ lib.sort = function(albs) {
       added = year[0].substr(0,2) < 30 ? '20' + alb : '19' + alb;
       return added;
     }
-    // works until 2030 
+    // works until 2030
     return alb;
   });
 };
@@ -56,7 +56,7 @@ lib.isArtdir = function(state, dir) {
 lib.strip = function(name) {
   return path.basename(name, path.extname(name));
 };
- 
+
 
 lib.fill = function(state, key, rest) {
   var name = path.basename(rest),
@@ -67,7 +67,7 @@ lib.fill = function(state, key, rest) {
     return;
   // album is file
 
-  rest = path.dirname(rest);  
+  rest = path.dirname(rest);
 
   if (state[key] != name && !state.sel) {
     state[key] = name;
@@ -84,32 +84,32 @@ lib.fill = function(state, key, rest) {
   }
   return rest;
 }
-    
+
 lib.load = function() {
   var buf = fs.readFileSync(path.join(process.env['HOME'],'.nwaud'), 'utf8'),
       roots = buf.replace(/\n+/,'').split(/\s+/);
 
   return function() {
     var arts = {};
-    // add only new keys 
+    // add only new keys
     _.each(roots, function(dir, n) {
       if (dir.length > 0)
         _.each(fs.readdirSync(dir), function(name) {
-          arts[name] = path.join(dir, name) 
-        });   
+          arts[name] = path.join(dir, name)
+        });
     });
     return arts;
   };
 }();
 
-lib.play = function(files, alb) {  
+lib.play = function(files, alb) {
   var ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
       tracks = _.filter(files, function(file) {
         return ext.test(file);
       });
 
-  lib.audtool('playlist-clear'); 
-  
+  lib.audtool('playlist-clear');
+
   _.each(tracks, function(track) {
     var cmd = "playlist-addurl \"";
     if (alb)
@@ -117,8 +117,8 @@ lib.play = function(files, alb) {
     cmd += track + "\"";
     lib.audtool(cmd);
   });
-  
-  lib.audtool('playback-play');   
+
+  lib.audtool('playback-play');
 };
 
 
@@ -141,7 +141,7 @@ lib.Info = function(props) {
 
 lib.Tracks = function(props) {
   var state = props.state;
-  
+
   if (state.sel || !state.tracks)
     return null;
 
@@ -160,15 +160,15 @@ lib.Tracks = function(props) {
        }
             <p></p>
     </div>
-  );      
+  );
 }
 
 lib.Albums = function(props) {
   var state = props.state;
-  
+
   if (!state.albs || !state.showAlbs || !state.art)
     return null;
-  
+
   return (
     <div className="albs">
       <p></p>
@@ -177,7 +177,7 @@ lib.Albums = function(props) {
         _.map(state.albs, function(alb, n) {
           var val = path.join(state.arts[state.art], alb);
           return (
-            <lib.Button key={n} 
+            <lib.Button key={n}
             type = {n == state.albNum && !state.sel ? "current" : "alb"}
             name={alb} limit="40"
             onClick = {_.partial(props.onClick, val)}
@@ -209,7 +209,7 @@ lib.Artists = function(props) {
     </div>
   );
 }
-     
+
 lib.Button = function(props) {
   return (
     <button onClick={props.onClick} className={props.type} >
@@ -218,6 +218,6 @@ lib.Button = function(props) {
   );
 };
 
-      
 
-    
+
+

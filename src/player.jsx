@@ -8,12 +8,12 @@ module.exports = React.createClass({
   fields: [
     'art', 'alb', 'track', 'length', 'played', 'bitrate', 'status'
   ],
-  
+
   getInitialState: function() {
     var state = {
       sel: false,
       showAlbs: true,
-      
+
     };
 
     _.each(this.fields, function(key) {
@@ -25,14 +25,14 @@ module.exports = React.createClass({
 
     return state;
   },
-  
+
   componentDidMount: function() {
     window.addEventListener("keypress", this.keyhandler(), true);
     this.timer = setInterval(this.current, 1000);
     this.setState({arts: lib.load()});
   },
 
-  
+
   render: function() {
     return (
       <div>
@@ -44,7 +44,7 @@ module.exports = React.createClass({
       </div>
     );
   },
-  
+
   current: function() {
     var state = _.clone(this.state),
         lines = lib.current(),
@@ -56,7 +56,7 @@ module.exports = React.createClass({
       else {
         state.status = 'Stopped';
         if (state.albs && state.alb)
-          this.playNext(state)             
+          this.playNext(state)
       }
       this.setState(state);
       return;
@@ -72,7 +72,7 @@ module.exports = React.createClass({
 
     _.each(['length', 'played', 'bitrate'], function(key, n) {
         state[key] = lines[n + 1]
-    });   
+    });
 
     this.setState(state);
   },
@@ -92,7 +92,7 @@ module.exports = React.createClass({
               });
           },
           p: function() {
-            var cmd = lib.isPaused() ? 'play' : 'pause';   
+            var cmd = lib.isPaused() ? 'play' : 'pause';
             lib.audtool('playback-' + cmd);
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
@@ -110,7 +110,7 @@ module.exports = React.createClass({
       }
     };
   },
-  
+
   selected: function(art) {
     var nodirs,
         state = _.clone(this.state),
@@ -123,14 +123,14 @@ module.exports = React.createClass({
       return fs.statSync(path.join(artdir, alb)).isFile()
     });
     // check if albs has at least one directory(album)
-    
+
     // if not, play it art is also album
     if (nodirs) {
       this.playAlbum(artdir, state);
     }
     else if (state.albs.length == 1)
       this.playAlbum(path.join(artdir, state.albs[0]), state);
-        
+
     this.setState(state);
   },
 
@@ -148,14 +148,14 @@ module.exports = React.createClass({
       lib.play([alb]);
     else
       lib.play(fs.readdirSync(alb), alb);
-    
+
     if (state.type == 'click') // onClick
       this.setState({
         sel: false,
         tracks: null,
         status: null
       });
-    else {    
+    else {
       state.sel  = false;
       state.tracks = self.status = null;
     }
@@ -168,7 +168,7 @@ module.exports = React.createClass({
 
     if (chosen.length == 1)
       this.selected(chosen[0]);
-    
+
     this.setState({chosen: chosen});
   }
 
