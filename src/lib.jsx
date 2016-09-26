@@ -25,7 +25,21 @@ lib.audtool = function(cmd) {
 };
 
 lib.isPaused = function() {
-  return this.audtool('playback-status') == 'paused\n'
+  if (this.isLinux)
+    return this.audtool('playback-status') == 'paused\n'
+  else
+    return cproc
+      .execSync('ps -o state -p $(pgrep afplay)')
+      .toString().split('\n')[1].startsWith('T');
+};
+
+lib.ctrlPlay = function(cmd) {
+  if (this.isLinux)
+    this.audtool('playback-' + cmd);
+  else
+    cproc.execSync(
+      "pkill -" + (cmd == "pause" ? "SIGSTOP" : "SIGCONT") + " afplay"
+    );
 };
 
 lib.current = function() {
@@ -124,7 +138,12 @@ lib.play = function(track, callback) {
 
 lib.stop = function() {
   var cmd = this.isLinux ? 'audacious' : 'afplay';
-  cproc.execSync("pkill " + cmd);
+  try {
+    cproc.execSync("pkill " + cmd);
+  }
+  catch(e) {
+    console.log(e);
+  }
 }
 
 

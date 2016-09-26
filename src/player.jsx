@@ -95,7 +95,7 @@ module.exports = React.createClass({
           },
           p: function() {
             var cmd = lib.isPaused() ? 'play' : 'pause';
-            lib.audtool('playback-' + cmd);
+            lib.ctrlPlay(cmd)
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
             });
@@ -157,6 +157,7 @@ module.exports = React.createClass({
     state.sel = false;
 
     this.setState(state);
+    lib.stop();
     this.playTrack(path.join(alb, state.track));
   },
 
@@ -164,14 +165,13 @@ module.exports = React.createClass({
     if (!track) {
       if (!num)
         num = this.state.trackNum + 1;
-      
+
       if (num < this.state.tracks.length)
         track = path.join(this.state.albPath, this.state.tracks[num]);
     }
     else
       num = 0;
-    
-    console.log(track);
+
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
   },
