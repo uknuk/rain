@@ -121,18 +121,33 @@ lib.load = function() {
 }();
 
 lib.tracks = function(alb) {
-  if (fs.statSync(alb).isFile())
-    return [alb];
-  else
-    return _.filter(fs.readdirSync(alb), function(file) {
-      return ext.test(file);
-    });
+  return fs.statSync(alb).isFile() ? [alb] : this.loadAlbum(alb);
+}
+
+lib.loadAlbum = function(alb) {
+  var sel = [],
+      files = _.map(fs.readdirSync(alb), function(f) {
+    return path.join(alb, f)
+  });
+
+  _.each(files, function(file) {
+    if (fs.statSync(file).isFile()) {
+      if (ext.test(file))
+        sel.push(file);
+    }
+    else
+      sel = sel.concat(lib.loadAlbum(file));
+  });
+
+  console.log(sel);
+  return sel;
 }
 
 lib.play = function(track, callback) {
   var cmd = this.isLinux ? "audacious -hqE '" : "afplay '";
   cproc.exec(cmd + track + "'", function(err, stdout, stderr) {
-    callback();
+    if (!err)
+      callback();
   });
 }
 

@@ -151,14 +151,15 @@ module.exports = React.createClass({
 
     state.trackNum = 0;
     state.tracks = lib.tracks(alb);
-    state.track = state.tracks[0];
-    state.albPath = alb;
+    state.track = path.basename(state.tracks[0]);
+    // state.albPath = alb;
     state.alb = path.basename(alb);
     state.sel = false;
 
     this.setState(state);
     lib.stop();
-    this.playTrack(path.join(alb, state.track));
+    this.playTrack(state.tracks[0]);
+    // track passed due to slow state update
   },
 
   playTrack: function(track, num) {
@@ -167,7 +168,7 @@ module.exports = React.createClass({
         num = this.state.trackNum + 1;
 
       if (num < this.state.tracks.length)
-        track = path.join(this.state.albPath, this.state.tracks[num]);
+        track = this.state.tracks[num];
     }
     else
       num = 0;
