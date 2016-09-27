@@ -1,8 +1,9 @@
 var React = require('react'),
-    lib = require('./lib.jsx'),
     _ = require('lodash'),
     fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    lib = require('./lib.js'),
+    comp = require('./components.jsx');
 
 module.exports = React.createClass({
   fields: [
@@ -38,11 +39,11 @@ module.exports = React.createClass({
   render: function() {
     return (
       <div>
-        <lib.Info fields={this.fields} state={this.state} />
-        <lib.Tracks state={this.state} onClick={this.jump}/>
-        <lib.Albums state={this.state} onClick={this.playAlbum} />
+        <comp.Info fields={this.fields} state={this.state} />
+        <comp.Tracks state={this.state} onClick={this.jump}/>
+        <comp.Albums state={this.state} onClick={this.playAlbum} />
         {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
-        <lib.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
+        <comp.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
       </div>
     );
   },
@@ -170,16 +171,19 @@ module.exports = React.createClass({
       if (num < this.state.tracks.length)
         track = this.state.tracks[num];
     }
-    else
-      num = 0;
+    else {
+      if (!num)
+        num = 0; // called from playAlbum
+    }
 
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
   },
 
   jump: function(num) {
-    this.setState({trackNum: num - 1});
     lib.stop()
+    this.playTrack(this.state.tracks[num], num);
+    // track and num can't be passed via state
   },
 
 
