@@ -5,9 +5,11 @@ var lib = exports,
     fs = require('fs'),
     path = require('path'),
     React = require('react'),
-    ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/;
+    ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
+    lastFile = path.join(process.env['HOME'],'.rlast');
 
 lib.isLinux = process.env._system_type == 'linux';
+
 
 lib.isStart = function() {
   try {
@@ -35,7 +37,7 @@ lib.isPaused = function() {
 
 lib.ctrlPlay = function(cmd) {
   if (this.isLinux)
-    this.audtool('playback-' + cmd);
+    this.audtool('playback-' + cmd)
   else
     cproc.execSync(
       "pkill -" + (cmd == "pause" ? "SIGSTOP" : "SIGCONT") + " afplay"
@@ -103,7 +105,7 @@ lib.fill = function(state, key, rest) {
   return rest;
 }
 
-lib.load = function() {
+lib.loadArts = function() {
   var buf = fs.readFileSync(path.join(process.env['HOME'],'.mhdirs'), 'utf8'),
       roots = buf.replace(/\n+/,'').split(/\s+/);
 
@@ -120,7 +122,7 @@ lib.load = function() {
   };
 }();
 
-lib.tracks = function(alb) {
+lib.loadTracks = function(alb) {
   return fs.statSync(alb).isFile() ? [alb] : this.loadAlbum(alb);
 }
 
@@ -158,6 +160,22 @@ lib.stop = function() {
   catch(e) {
     console.log(e);
   }
+}
+
+lib.loadLast = function() {
+  try {
+    return fs.readFileSync(lastFile, 'utf8').split(/\n/);
+  }
+  catch(e) {
+    console.log("File .rlast not found");
+    return [null, null, null];
+  }
+}
+
+lib.save = function(idx, val) {
+  var data = lib.loadLast();
+  data[idx] = val;
+  fs.writeFileSync(lastFile, data.join('\n'));
 }
 
 

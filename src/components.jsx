@@ -55,15 +55,14 @@ comp.Albums = function(props) {
   return (
     <div className="albs">
       <p></p>
-      {path.basename(state.art) + ': '}
+      {state.art + ': '}
       {
         _.map(state.albs, function(alb, n) {
-          var val = path.join(state.arts[state.art], alb);
           return (
             <comp.Button key={n}
                         type = {n == state.albNum && !state.sel ? "current" : "alb"}
                         name={alb} limit="40"
-                        onClick = {_.partial(props.onClick, val)}
+                        onClick = {_.partial(props.onClick, alb)}
             />
           )
         })

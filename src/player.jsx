@@ -27,12 +27,26 @@ module.exports = React.createClass({
   },
 
   componentDidMount: function() {
+    var arts = lib.loadArts(),
+        data = lib.loadLast(),
+        art = data[0],
+        alb = data[1],
+        albs = alb ? lib.sort(fs.readdirSync(arts[art])) : null;
+
     window.addEventListener("keypress", this.keyhandler(), true);
 
     if (lib.isLinux)
       this.timer = setInterval(this.current, 1000);
 
-    this.setState({arts: lib.load()});
+    if (data[2])
+      this.playAlbum(alb, _.clone(this.state), parseInt(data[2]));
+
+    this.setState({
+      arts: arts,
+      art: art,
+      albs: albs,
+      albNum: _.indexOf(albs, path.basename(alb))
+    });
   },
 
 
@@ -41,7 +55,7 @@ module.exports = React.createClass({
       <div>
         <comp.Info fields={this.fields} state={this.state} />
         <comp.Tracks state={this.state} onClick={this.jump}/>
-        <comp.Albums state={this.state} onClick={this.playAlbum} />
+        <comp.Albums state={this.state} onClick={this.selectAlbum} />
         {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
         <comp.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
       </div>
@@ -91,7 +105,7 @@ module.exports = React.createClass({
                 sel: true,
                 showAlbs: false,
                 chosen: null,
-                arts: lib.load()
+                arts: lib.loadArts()
               });
           },
           p: function() {
@@ -135,6 +149,7 @@ module.exports = React.createClass({
       this.playAlbum(path.join(artdir, state.albs[0]), state);
 
     this.setState(state);
+    lib.save(0, art);
   },
 
   match(input, opt) {
@@ -142,26 +157,38 @@ module.exports = React.createClass({
   },
 
   playNext: function(state) {
-    var alb = path.join(state.arts[state.art], state.albs[++state.albNum])
-    this.playAlbum(alb, state);
+    var state = _.clone(this.state),
+        next = state.albNum + 1;
+
+    if (next < state.albs.length)
+      this.playAlbum(
+        path.join(state.arts[state.art], state.albs[next]), state
+      );
   },
 
-  playAlbum: function(alb, state) {
-    if (state.type == 'click') // onClick, event as state
-      state = _.clone(this.state);
+  playAlbum: function(alb, state, num) {
+    if (!num)
+      num = 0;
 
-    state.trackNum = 0;
-    state.tracks = lib.tracks(alb);
-    state.track = path.basename(state.tracks[0]);
-    // state.albPath = alb;
+    state.trackNum = num;
+    state.tracks = lib.loadTracks(alb);
+    state.track = path.basename(state.tracks[num]);
     state.alb = path.basename(alb);
+    state.albNum = _.indexOf(state.albs, state.alb);
     state.sel = false;
 
     this.setState(state);
     lib.stop();
-    this.playTrack(state.tracks[0]);
+    this.playTrack(state.tracks[num], num);
     // track passed due to slow state update
+    lib.save(1, alb);
   },
+
+  selectAlbum(alb) {
+    var state = _.clone(this.state);
+    this.playAlbum(path.join(state.arts[state.art], alb), state);
+  },
+
 
   playTrack: function(track, num) {
     if (!track) {
@@ -170,14 +197,15 @@ module.exports = React.createClass({
 
       if (num < this.state.tracks.length)
         track = this.state.tracks[num];
-    }
-    else {
-      if (!num)
-        num = 0; // called from playAlbum
+      else {
+        this.playNext();
+        return;
+      }
     }
 
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
+    lib.save(2, num);
   },
 
   jump: function(num) {
