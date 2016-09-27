@@ -92,9 +92,7 @@ lib.loadTracks = function(alb) {
 
 lib.loadAlbum = function(alb) {
   var sel = [],
-      files = _.map(fs.readdirSync(alb), function(f) {
-    return path.join(alb, f)
-  });
+      files = _.map(fs.readdirSync(alb), (f) => path.join(alb, f));
 
   _.each(files, function(file) {
     if (fs.statSync(file).isFile()) {

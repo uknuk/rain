@@ -8,8 +8,8 @@
     "height": 572
   },
   "scripts": {
-    "build": "browserify --bare -t [ babelify] src/index.jsx -o build/app.js; echo 'done'",
-    "watch": "watchify --bare -t [babelify] src/index.jsx -o build/app.js -v"
+    "build": "browserify --bare -t [ babelify] src/index.jsx -o build/app.js -d; echo 'done'",
+    "watch": "watchify --bare -t [babelify] src/index.jsx -o build/app.js -dv"
   },
   "dependencies": {
     "babel-preset-react": "^6.5.0",
@@ -17,6 +17,6 @@
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
     "lodash": "^4.6.1",
-    "//" : "global nw@0.12.3" 
+    "//" : "nw@0.17.4-sdk" 
   }
 }
