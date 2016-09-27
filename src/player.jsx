@@ -64,31 +64,10 @@ module.exports = React.createClass({
 
   current: function() {
     var state = _.clone(this.state),
-        lines = lib.current(),
-        rest = lines[0];
-
-    if (rest == 'No song playing.') {
-      if (lib.isStart())
-        state.status = 'Starting audacious';
-      else {
-        state.status = 'Stopped';
-        if (state.albs && state.alb)
-          this.playNext(state)
-      }
-      this.setState(state);
-      return;
-    }
-
-    if (state.status != 'Paused')
-      state.status = null;
-
-    rest = lines[0];
-    _.each(['track', 'alb', 'art'], function(key) {
-      rest = lib.fill(state, key, rest);
-    });
+        lines = lib.current();
 
     _.each(['length', 'played', 'bitrate'], function(key, n) {
-        state[key] = lines[n + 1]
+        state[key] = lines[n]
     });
 
     this.setState(state);

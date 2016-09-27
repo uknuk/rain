@@ -8,7 +8,7 @@ var lib = exports,
     ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
     lastFile = path.join(process.env['HOME'],'.rlast');
 
-lib.isLinux = process.env._system_type == 'linux';
+lib.isLinux = process.env._system_type == 'Linux';
 
 
 lib.isStart = function() {
@@ -45,13 +45,9 @@ lib.ctrlPlay = function(cmd) {
 };
 
 lib.current = function() {
-  var cmd = '%filename %length %output-length %bitrate-kbps'
+  var cmd = '%length %output-length %bitrate-kbps'
       .replace(/%/g, 'current-song-');
   return this.audtool(cmd).split(/\n/);
-};
-
-lib.jump = function(n) {
-  lib.audtool('playlist-jump ' + n);
 };
 
 lib.sort = function(albs) {
@@ -69,41 +65,10 @@ lib.sort = function(albs) {
   });
 };
 
-lib.isArtdir = function(state, dir) {
-  return  _.includes(_.values(state.arts), dir);
-}
 
 lib.strip = function(name) {
   return path.basename(name, path.extname(name));
 };
-
-
-lib.fill = function(state, key, rest) {
-  var name = path.basename(rest),
-      keys = key + 's';
-
-  if ((key == 'art' && !lib.isArtdir(state, rest)) ||
-      (key == 'alb' && state['alb'] === lib.strip(state['track'])))
-    return;
-  // album is file
-
-  rest = path.dirname(rest);
-
-  if (state[key] != name && !state.sel) {
-    state[key] = name;
-    if (key != 'art') {
-      // album is file
-      if (key == 'track' && lib.isArtdir(state, rest))
-        return path.join(rest, lib.strip(name));
-
-      if (!state[keys] &&  !state.sel)
-        state[keys] = fs.readdirSync(rest);
-
-      state[key + 'Num'] = _.indexOf(state[keys], name);
-    }
-  }
-  return rest;
-}
 
 lib.loadArts = function() {
   var buf = fs.readFileSync(path.join(process.env['HOME'],'.mhdirs'), 'utf8'),
@@ -146,14 +111,19 @@ lib.loadAlbum = function(alb) {
 
 lib.play = function(track, callback) {
   var cmd = this.isLinux ? "audacious -hqE '" : "afplay '";
+  console.log(cmd);
+  console.log(track);
   cproc.exec(cmd + track + "'", function(err, stdout, stderr) {
-    if (!err)
+    console.log(err);
+    if (!err) {
+      console.log("Callback");
       callback();
+    }
   });
 }
 
 lib.stop = function() {
-  var cmd = this.isLinux ? 'audacious' : 'afplay';
+  var cmd = this.isLinux ? '-SIGKILL audacious' : 'afplay';
   try {
     cproc.execSync("pkill " + cmd);
   }
