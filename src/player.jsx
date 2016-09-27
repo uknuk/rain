@@ -1,8 +1,9 @@
 var React = require('react'),
-    lib = require('./lib.jsx'),
     _ = require('lodash'),
     fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    lib = require('./lib.js'),
+    comp = require('./components.jsx');
 
 module.exports = React.createClass({
   fields: [
@@ -13,65 +14,60 @@ module.exports = React.createClass({
     var state = {
       sel: false,
       showAlbs: true,
-
     };
 
     _.each(this.fields, function(key) {
       state[key] = null;
     });
 
-    if (lib.isPaused())
+    if (lib.isLinux && lib.isPaused())
       state.status = 'Paused';
 
     return state;
   },
 
   componentDidMount: function() {
+    var arts = lib.loadArts(),
+        data = lib.loadLast(),
+        art = data[0],
+        alb = data[1],
+        albs = alb ? lib.sort(fs.readdirSync(arts[art])) : null;
+
     window.addEventListener("keypress", this.keyhandler(), true);
-    this.timer = setInterval(this.current, 1000);
-    this.setState({arts: lib.load()});
+
+    if (lib.isLinux)
+      this.timer = setInterval(this.current, 1000);
+
+    if (data[2])
+      this.playAlbum(alb, _.clone(this.state), parseInt(data[2]));
+
+    this.setState({
+      arts: arts,
+      art: art,
+      albs: albs,
+      albNum: _.indexOf(albs, path.basename(alb))
+    });
   },
 
 
   render: function() {
     return (
       <div>
-        <lib.Info fields={this.fields} state={this.state} />
-        <lib.Tracks state={this.state} />
-        <lib.Albums state={this.state} onClick={this.playAlbum} />
+        <comp.Info fields={this.fields} state={this.state} />
+        <comp.Tracks state={this.state} onClick={this.jump}/>
+        <comp.Albums state={this.state} onClick={this.selectAlbum} />
         {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
-        <lib.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
+        <comp.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
       </div>
     );
   },
 
   current: function() {
     var state = _.clone(this.state),
-        lines = lib.current(),
-        rest = lines[0];
-
-    if (rest == 'No song playing.') {
-      if (lib.isStart())
-        state.status = 'Starting audacious';
-      else {
-        state.status = 'Stopped';
-        if (state.albs && state.alb)
-          this.playNext(state)
-      }
-      this.setState(state);
-      return;
-    }
-
-    if (state.status != 'Paused')
-      state.status = null;
-
-    rest = lines[0];
-    _.each(['track', 'alb', 'art'], function(key) {
-      rest = lib.fill(state, key, rest);
-    });
+        lines = lib.current();
 
     _.each(['length', 'played', 'bitrate'], function(key, n) {
-        state[key] = lines[n + 1]
+        state[key] = lines[n]
     });
 
     this.setState(state);
@@ -88,12 +84,12 @@ module.exports = React.createClass({
                 sel: true,
                 showAlbs: false,
                 chosen: null,
-                arts: lib.load()
+                arts: lib.loadArts()
               });
           },
           p: function() {
             var cmd = lib.isPaused() ? 'play' : 'pause';
-            lib.audtool('playback-' + cmd);
+            lib.ctrlPlay(cmd)
             self.setState({
               status: cmd == 'pause' ? 'Paused' : null
             });
@@ -132,6 +128,7 @@ module.exports = React.createClass({
       this.playAlbum(path.join(artdir, state.albs[0]), state);
 
     this.setState(state);
+    lib.save(0, art);
   },
 
   match(input, opt) {
@@ -139,27 +136,63 @@ module.exports = React.createClass({
   },
 
   playNext: function(state) {
-    var alb = path.join(state.arts[state.art], state.albs[++state.albNum])
-    this.playAlbum(alb, state);
+    var state = _.clone(this.state),
+        next = state.albNum + 1;
+
+    if (next < state.albs.length)
+      this.playAlbum(
+        path.join(state.arts[state.art], state.albs[next]), state
+      );
   },
 
-  playAlbum: function(alb, state) {
-    if (fs.statSync(alb).isFile())
-      lib.play([alb]);
-    else
-      lib.play(fs.readdirSync(alb), alb);
+  playAlbum: function(alb, state, num) {
+    if (!num)
+      num = 0;
 
-    if (state.type == 'click') // onClick
-      this.setState({
-        sel: false,
-        tracks: null,
-        status: null
-      });
-    else {
-      state.sel  = false;
-      state.tracks = self.status = null;
+    state.trackNum = num;
+    state.tracks = lib.loadTracks(alb);
+    state.track = path.basename(state.tracks[num]);
+    state.alb = path.basename(alb);
+    state.albNum = _.indexOf(state.albs, state.alb);
+    state.sel = false;
+
+    this.setState(state);
+    lib.stop();
+    this.playTrack(state.tracks[num], num);
+    // track passed due to slow state update
+    lib.save(1, alb);
+  },
+
+  selectAlbum(alb) {
+    var state = _.clone(this.state);
+    this.playAlbum(path.join(state.arts[state.art], alb), state);
+  },
+
+
+  playTrack: function(track, num) {
+    if (!track) {
+      if (!num)
+        num = this.state.trackNum + 1;
+
+      if (num < this.state.tracks.length)
+        track = this.state.tracks[num];
+      else {
+        this.playNext();
+        return;
+      }
     }
+
+    lib.play(track, this.playTrack);
+    this.setState({trackNum: num, track: path.basename(track)});
+    lib.save(2, num);
   },
+
+  jump: function(num) {
+    lib.stop()
+    this.playTrack(this.state.tracks[num], num);
+    // track and num can't be passed via state
+  },
+
 
   filter: function(ev) {
     var chosen = _.filter(_.keys(this.state.arts), function(art) {
