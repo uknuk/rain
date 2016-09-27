@@ -3,7 +3,7 @@
   "private": true,
   "main": "index.html",
   "window": {
-    "toolbar": true,
+    "toolbar": false,
     "width": 1024,
     "height": 572
   },
@@ -16,6 +16,7 @@
     "babelify": "^7.2.0",
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
-    "lodash": "^4.6.1"
+    "lodash": "^4.6.1",
+    "//" : "global nw@0.12.3" 
   }
 }

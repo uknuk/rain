@@ -8,8 +8,7 @@ var lib = exports,
     ext = /\.mp3$|\.mp4a$|\.mpc$|\.ogg$/,
     lastFile = path.join(process.env['HOME'],'.rlast');
 
-lib.isLinux = process.env._system_type == 'Linux';
-
+lib.isLinux = process.env._system_type != 'Darwin';
 
 lib.isStart = function() {
   try {
@@ -110,20 +109,16 @@ lib.loadAlbum = function(alb) {
 }
 
 lib.play = function(track, callback) {
-  var cmd = this.isLinux ? "audacious -hqE '" : "afplay '";
-  console.log(cmd);
-  console.log(track);
-  cproc.exec(cmd + track + "'", function(err, stdout, stderr) {
-    console.log(err);
-    if (!err) {
-      console.log("Callback");
+  var cmd = this.isLinux ? 'audacious -hqE "' : 'afplay "';
+  cproc.exec(cmd + track + '"', function(err, stdout, stderr) {
+    if (!err)
       callback();
-    }
   });
 }
 
 lib.stop = function() {
-  var cmd = this.isLinux ? '-SIGKILL audacious' : 'afplay';
+  var cmd = this.isLinux ? "-SIGKILL audacious" : "afplay";
+  // audacious needs SIGKILL to generate err in exec function
   try {
     cproc.execSync("pkill " + cmd);
   }
