@@ -51,15 +51,15 @@ lib.current = function() {
 
 lib.sort = function(albs) {
   return _.sortBy(albs, function(alb) {
-    var year, added, re = /^\d{2}[\s+|_|-]/;
+    var re = /^\d{2}[\s+|_|-]/;
     if (alb.substr(0,2) == 'M0')
       return alb.replace('M0', '200');
-    year = alb.match(re);
-    if (year) {
-      added = year[0].substr(0,2) < 30 ? '20' + alb : '19' + alb;
-      return added;
-    }
+
+    var year = alb.match(re);
+    if (year)
+      return year[0].substr(0,2) < 30 ? '20' + alb : '19' + alb;
     // works until 2030
+
     return alb;
   });
 };

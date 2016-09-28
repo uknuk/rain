@@ -28,9 +28,7 @@ module.exports = React.createClass({
 
   componentDidMount: function() {
     var arts = lib.loadArts(),
-        data = lib.loadLast(),
-        art = data[0],
-        alb = data[1],
+        [art, alb, num] = lib.loadLast(),
         albs = alb ? lib.sort(fs.readdirSync(arts[art])) : null;
 
     window.addEventListener("keypress", this.keyhandler(), true);
@@ -38,8 +36,8 @@ module.exports = React.createClass({
     if (lib.isLinux)
       this.timer = setInterval(this.current, 1000);
 
-    if (data[2])
-      this.playAlbum(alb, _.clone(this.state), parseInt(data[2]));
+    if (num)
+      this.playAlbum(alb, _.clone(this.state), parseInt(num));
 
     this.setState({
       arts: arts,
