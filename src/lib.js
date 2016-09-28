@@ -147,9 +147,13 @@ lib.loadLast = function() {
   }
 }
 
-lib.save = function(idx, val) {
+lib.saveTrackNum = function(num) {
   var data = lib.loadLast();
-  data[idx] = val;
+  data[2] = num;
+  lib.saveData(data);
+}
+
+lib.saveData = function(data) {
   fs.writeFileSync(lastFile, data.join('\n'));
 }
 

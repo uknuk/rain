@@ -26,35 +26,37 @@ module.exports = React.createClass({
 
   componentDidMount: function() {
     var arts = lib.loadArts(),
-        [art, alb, num] = lib.loadLast(),
-        albs = alb ? lib.sort(fs.readdirSync(arts[art])) : null;
+        [art, alb, num] = lib.loadLast();
 
     window.addEventListener("keypress", this.keyhandler(), true);
 
     if (lib.isLinux)
       this.timer = setInterval(this.current, 1000);
 
-    if (num)
-      this.playAlbum(alb, _.clone(this.state), parseInt(num));
+    if (num) {
+      var albs = lib.sort(fs.readdirSync(arts[art])),
+          state = {
+            arts: arts,
+            selArt: art,
+            selAlbs: albs,
+            albNum: _.indexOf(albs, path.basename(alb))
+          };
 
-    this.setState({
-      arts: arts,
-      art: art,
-      selArt: art,
-      albs: albs,
-      albNum: _.indexOf(albs, path.basename(alb))
-    });
+      this.playAlbum(alb, _.clone(this.state), parseInt(num));
+      this.setState(state);
+      }
   },
 
 
   render: function() {
+    var search = this.state.sel && !this.state.showAlbs;
     return (
       <div>
-        <comp.Info fields={this.fields} state={this.state} />
+        <comp.Info display={!search} fields={this.fields} state={this.state} />
         <comp.Tracks state={this.state} onClick={this.jump}/>
         <comp.Albums state={this.state} onClick={this.selectAlbum} />
-        {this.state.sel && !this.state.showAlbs ? <input type='search' onChange={this.filter} autoFocus /> : null}
-        <comp.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
+        {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
+        <comp.Artists display={search} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
       </div>
     );
   },
@@ -77,7 +79,12 @@ module.exports = React.createClass({
         fmap = {
           w: function() {
             if (self.state.sel)
-              self.setState({ sel: false, art: null, showAlbs: true });
+              self.setState({
+                sel: false,
+                selArt: null,
+                selAlbs: null,
+                showAlbs: true
+              });
             else
               self.setState({
                 sel: true,
@@ -104,15 +111,14 @@ module.exports = React.createClass({
     };
   },
 
-  selected: function(art) {
-    var nodirs,
-        state = _.clone(this.state),
-        artdir = state.arts[art];
+  selected: function(newArt) {
+    var state = _.clone(this.state),
+        artdir = state.arts[newArt];
 
-    state.selArt = art;
+    state.selArt = newArt;
     state.showAlbs = true;
-    state.albs = lib.sort(fs.readdirSync(artdir));
-    nodirs = _.every(state.albs, function(alb) {
+    state.selAlbs = lib.sort(fs.readdirSync(artdir));
+    var nodirs = _.every(state.selAlbs, function(alb) {
       return fs.statSync(path.join(artdir, alb)).isFile()
     });
     // check if albs has at least one directory(album)
@@ -121,11 +127,10 @@ module.exports = React.createClass({
     if (nodirs) {
       this.playAlbum(artdir, state);
     }
-    else if (state.albs.length == 1)
-      this.playAlbum(path.join(artdir, state.albs[0]), state);
+    else if (state.selAlbs.length == 1)
+      this.playAlbum(path.join(artdir, state.selAlbs[0]), state);
 
     this.setState(state);
-    lib.save(0, art);
   },
 
   match(input, opt) {
@@ -147,6 +152,7 @@ module.exports = React.createClass({
       num = 0;
 
     state.art = state.selArt;
+    state.albs = state.selAlbs;
     state.trackNum = num;
     state.tracks = lib.loadTracks(alb);
     state.track = path.basename(state.tracks[num]);
@@ -158,7 +164,7 @@ module.exports = React.createClass({
     lib.stop();
     this.playTrack(state.tracks[num], num);
     // track passed due to slow state update
-    lib.save(1, alb);
+    lib.saveData([state.art, alb, 0]);
   },
 
   selectAlbum(alb) {
@@ -182,7 +188,7 @@ module.exports = React.createClass({
 
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
-    lib.save(2, num);
+    lib.saveTrackNum(num);
   },
 
   jump: function(num) {

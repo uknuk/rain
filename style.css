@@ -18,11 +18,15 @@ button {
     font-size: 12px
 }
 
+button.art {
+    font-size: 10px
+}
+
 span {
     font-size: 24px
 }
 
-#length {
+span.length {
     font-size: 20px
 }
 

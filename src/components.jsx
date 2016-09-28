@@ -7,6 +7,10 @@ var comp = exports,
 
 comp.Info = function(props) {
   var state = props.state;
+
+  if (!props.display)
+    return null;
+
   return (
     <div className="container">
       {
@@ -17,14 +21,14 @@ comp.Info = function(props) {
 
       { state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
 
-      <comp.Progress display={!state.sel} played={state.played} length={state.length} />
+      <comp.Progress played={state.played} length={state.length} />
       <p/>
     </div>
   );
 }
 
 comp.Progress = function(props) {
-  if (!(props.display && props.played))
+  if (!props.played)
     return null;
 
   return (
@@ -43,7 +47,7 @@ comp.Progress = function(props) {
       </div>
 
       <div className="col-sm-2">
-        <span className="length" id="length">{props.length}</span>
+        <span className="length">{props.length}</span>
       </div>
     </div>
   );
@@ -76,7 +80,7 @@ comp.Tracks = function(props) {
 comp.Albums = function(props) {
   var state = props.state;
 
-  if (!state.albs || !state.showAlbs || !state.art)
+  if (!(state.showAlbs && (state.albs || state.selAlbs)))
     return null;
 
   return (
@@ -84,7 +88,7 @@ comp.Albums = function(props) {
       <p></p>
       {state.selArt + ': '}
       {
-        _.map(state.albs, function(alb, n) {
+        _.map(state.selAlbs || state.albs, function(alb, n) {
           return (
             <comp.Button key={n}
                         type = {n == state.albNum && !state.sel ? "current" : "alb"}
@@ -100,7 +104,7 @@ comp.Albums = function(props) {
 }
 
 comp.Artists = function(props) {
-  if (!props.sel)
+  if (!props.display)
     return null;
 
   return (
