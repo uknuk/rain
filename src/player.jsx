@@ -39,10 +39,10 @@ module.exports = React.createClass({
             arts: arts,
             selArt: art,
             selAlbs: albs,
-            albNum: _.indexOf(albs, path.basename(alb))
+            albNum: _.indexOf(albs, alb)
           };
 
-      this.playAlbum(alb, _.clone(this.state), parseInt(num));
+      this.playAlbum(path.join(arts[art], alb), _.clone(this.state), parseInt(num));
       this.setState(state);
       }
   },
@@ -164,6 +164,7 @@ module.exports = React.createClass({
     lib.stop();
     this.playTrack(state.tracks[num], num);
     // track passed due to slow state update
+    lib.saveData([state.art, state.alb, num]);
   },
 
   selectAlbum(alb) {
@@ -183,11 +184,12 @@ module.exports = React.createClass({
         this.playNext();
         return;
       }
-      lib.saveData([this.state.art, this.state.alb, num]);
     }
 
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
+    if (this.state.art)
+      lib.saveData([this.state.art, this.state.alb, num]);
   },
 
   jump: function(num) {

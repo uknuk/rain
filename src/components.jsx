@@ -28,7 +28,7 @@ comp.Info = function(props) {
 }
 
 comp.Progress = function(props) {
-  if (!props.played)
+  if (!props.played || props.length == "0:00")
     return null;
 
   return (
