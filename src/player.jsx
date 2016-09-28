@@ -164,7 +164,6 @@ module.exports = React.createClass({
     lib.stop();
     this.playTrack(state.tracks[num], num);
     // track passed due to slow state update
-    lib.saveData([state.art, alb, 0]);
   },
 
   selectAlbum(alb) {
@@ -184,11 +183,11 @@ module.exports = React.createClass({
         this.playNext();
         return;
       }
+      lib.saveData([this.state.art, this.state.alb, num]);
     }
 
     lib.play(track, this.playTrack);
     this.setState({trackNum: num, track: path.basename(track)});
-    lib.saveTrackNum(num);
   },
 
   jump: function(num) {
