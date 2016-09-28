@@ -1,4 +1,4 @@
-.art, .track, .albs {
+.art, .track, .albs, .length {
     color: blue
 }
 
@@ -10,7 +10,7 @@
     color: red
 }
 
-.length, .played, .bitrate {
+.played, .bitrate {
     color: brown
 }
 
@@ -19,6 +19,10 @@ button {
 }
 
 span {
+    font-size: 24px
+}
+
+#length {
     font-size: 20px
 }
 

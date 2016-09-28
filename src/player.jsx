@@ -6,22 +6,20 @@ var React = require('react'),
     comp = require('./components.jsx');
 
 module.exports = React.createClass({
-  fields: [
-    'art', 'alb', 'track', 'length', 'played', 'bitrate', 'status'
-  ],
+  fields: ['art', 'alb', 'track', 'bitrate'],
 
   getInitialState: function() {
     var state = {
       sel: false,
       showAlbs: true,
+      pause: false,
+      played: null,
+      length: null
     };
 
     _.each(this.fields, function(key) {
       state[key] = null;
     });
-
-    if (lib.isLinux && lib.isPaused())
-      state.status = 'Paused';
 
     return state;
   },
@@ -42,6 +40,7 @@ module.exports = React.createClass({
     this.setState({
       arts: arts,
       art: art,
+      selArt: art,
       albs: albs,
       albNum: _.indexOf(albs, path.basename(alb))
     });
@@ -54,7 +53,7 @@ module.exports = React.createClass({
         <comp.Info fields={this.fields} state={this.state} />
         <comp.Tracks state={this.state} onClick={this.jump}/>
         <comp.Albums state={this.state} onClick={this.selectAlbum} />
-        {this.state.sel ? <input type='search' onChange={this.filter} autoFocus /> : null}
+        {this.state.sel && !this.state.showAlbs ? <input type='search' onChange={this.filter} autoFocus /> : null}
         <comp.Artists sel={this.state.sel} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
       </div>
     );
@@ -67,6 +66,8 @@ module.exports = React.createClass({
     _.each(['length', 'played', 'bitrate'], function(key, n) {
         state[key] = lines[n]
     });
+
+    state.bitrate += " kbps"
 
     this.setState(state);
   },
@@ -88,9 +89,7 @@ module.exports = React.createClass({
           p: function() {
             var cmd = lib.isPaused() ? 'play' : 'pause';
             lib.ctrlPlay(cmd)
-            self.setState({
-              status: cmd == 'pause' ? 'Paused' : null
-            });
+            self.setState({pause: cmd == 'pause'});
           }
         };
 
@@ -110,7 +109,7 @@ module.exports = React.createClass({
         state = _.clone(this.state),
         artdir = state.arts[art];
 
-    state.art = art;
+    state.selArt = art;
     state.showAlbs = true;
     state.albs = lib.sort(fs.readdirSync(artdir));
     nodirs = _.every(state.albs, function(alb) {
@@ -147,6 +146,7 @@ module.exports = React.createClass({
     if (!num)
       num = 0;
 
+    state.art = state.selArt;
     state.trackNum = num;
     state.tracks = lib.loadTracks(alb);
     state.track = path.basename(state.tracks[num]);
@@ -163,7 +163,7 @@ module.exports = React.createClass({
 
   selectAlbum(alb) {
     var state = _.clone(this.state);
-    this.playAlbum(path.join(state.arts[state.art], alb), state);
+    this.playAlbum(path.join(state.arts[state.selArt], alb), state);
   },
 
 

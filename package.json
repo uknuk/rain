@@ -12,11 +12,12 @@
     "watch": "watchify --bare -t [babelify] src/index.jsx -o build/app.js -dv"
   },
   "dependencies": {
+    "//": "nw@0.17.4-sdk",
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
-    "react": "^15.0.1",
-    "react-dom": "^15.0.1",
+    "bootstrap": "3.3.7",
     "lodash": "^4.6.1",
-    "//" : "nw@0.17.4-sdk" 
+    "react": "^15.0.1",
+    "react-dom": "^15.0.1"
   }
 }

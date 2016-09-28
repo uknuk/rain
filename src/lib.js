@@ -115,10 +115,22 @@ lib.play = function(track, callback) {
 }
 
 lib.stop = function() {
-  var cmd = this.isLinux ? "-SIGKILL audacious" : "afplay";
-  // audacious needs SIGKILL to generate err in exec function
+  var cmd = "pkill ",
+      player = lib.isLinux ? "audacious" : "afplay";
+
   try {
-    cproc.execSync("pkill " + cmd);
+    cproc.execSync(`pgrep ${player}`)
+  }
+  catch(e) {
+    return;
+  }
+
+  if (lib.isLinux)
+    cmd += "-SIGKILL ";
+   // audacious needs SIGKILL to generate err in exec function
+
+  try {
+    cproc.execSync(cmd + player);
   }
   catch(e) {
     console.log(e);
@@ -139,6 +151,13 @@ lib.save = function(idx, val) {
   var data = lib.loadLast();
   data[idx] = val;
   fs.writeFileSync(lastFile, data.join('\n'));
+}
+
+lib.seconds = function(time) {
+  var ar = _.reverse(time.split(':'));
+  return _.reduce(
+    ar, (sum, val, n) => sum + val*Math.pow(60,n), 0
+  );
 }
 
 

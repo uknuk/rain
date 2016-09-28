@@ -6,18 +6,45 @@ var comp = exports,
 
 
 comp.Info = function(props) {
+  var state = props.state;
   return (
-    <div>
+    <div className="container">
       {
         _.map(props.fields, function(key, n) {
-          return (
-            <span key={n} className={key}>
-              {(props.state[key] || '') + ' '}
-            </span>
-          )
+          return <span key={n} className={key}> {(state[key] || '') + ' '} </span>;
         })
-      }
-            <p></p>
+       }
+
+      { state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
+
+      <comp.Progress display={!state.sel} played={state.played} length={state.length} />
+      <p/>
+    </div>
+  );
+}
+
+comp.Progress = function(props) {
+  if (!(props.display && props.played))
+    return null;
+
+  return (
+    <div className="col-sm-12">
+      <div className="col-sm-10">
+        <div className="progress">
+          <div className="progress-bar"
+               style={{
+                      width: lib.seconds(props.played)/lib.seconds(props.length)*100 + "%",
+                      minWidth: "2em"
+                      }}
+               >
+            {props.played}
+          </div>
+        </div>
+      </div>
+
+      <div className="col-sm-2">
+        <span className="length" id="length">{props.length}</span>
+      </div>
     </div>
   );
 }
@@ -55,7 +82,7 @@ comp.Albums = function(props) {
   return (
     <div className="albs">
       <p></p>
-      {state.art + ': '}
+      {state.selArt + ': '}
       {
         _.map(state.albs, function(alb, n) {
           return (
@@ -98,4 +125,9 @@ comp.Button = function(props) {
       {lib.strip(props.name).substring(0, props.limit)}
     </button>
   );
+};
+
+
+comp.Pause = function() {
+  return (<span className="glyphicon glyphicon-pause"></span>);
 };
