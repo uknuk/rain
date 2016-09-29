@@ -34,17 +34,15 @@ module.exports = React.createClass({
       this.timer = setInterval(this.current, 1000);
 
     if (num) {
-      var albs = lib.sort(fs.readdirSync(arts[art])),
-          state = {
-            arts: arts,
-            selArt: art,
-            selAlbs: albs,
-            albNum: _.indexOf(albs, alb)
-          };
+      let state = {
+        arts: arts,
+        art: art,
+        selArt: art,
+        albs: lib.sort(fs.readdirSync(arts[art]))
+      };
 
-      this.playAlbum(path.join(arts[art], alb), _.clone(this.state), parseInt(num));
-      this.setState(state);
-      }
+      this.setState(state, _.partial(this.playAlbum, alb, parseInt(num)));
+    }
   },
 
 
@@ -53,25 +51,12 @@ module.exports = React.createClass({
     return (
       <div>
         <comp.Info display={!search} fields={this.fields} state={this.state} />
-        <comp.Tracks state={this.state} onClick={this.jump}/>
+        <comp.Tracks state={this.state} onClick={this.playTrack}/>
         <comp.Albums state={this.state} onClick={this.selectAlbum} />
         {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
-        <comp.Artists display={search} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selected} />
+        <comp.Artists display={search} arts={this.state.chosen || _.keys(this.state.arts)} onClick={this.selectArt} />
       </div>
     );
-  },
-
-  current: function() {
-    var state = _.clone(this.state),
-        lines = lib.current();
-
-    _.each(['length', 'played', 'bitrate'], function(key, n) {
-        state[key] = lines[n]
-    });
-
-    state.bitrate += " kbps"
-
-    this.setState(state);
   },
 
   keyhandler: function() {
@@ -111,91 +96,69 @@ module.exports = React.createClass({
     };
   },
 
-  selected: function(newArt) {
-    var state = _.clone(this.state),
-        artdir = state.arts[newArt];
+  selectArt: function(art) {
+    var play = null,
+        artdir = this.state.arts[art],
+        selAlbs = lib.sort(fs.readdirSync(artdir));
 
-    state.selArt = newArt;
-    state.showAlbs = true;
-    state.selAlbs = lib.sort(fs.readdirSync(artdir));
-    var nodirs = _.every(state.selAlbs, function(alb) {
-      return fs.statSync(path.join(artdir, alb)).isFile()
-    });
-    // check if albs has at least one directory(album)
+    var nodirs = _.every(selAlbs, (alb) =>
+      fs.statSync(path.join(artdir, alb)).isFile()
+    );  // check if albs has at least one directory(album)
 
-    // if not, play it art is also album
-    if (nodirs) {
-      this.playAlbum(artdir, state);
-    }
-    else if (state.selAlbs.length == 1)
-      this.playAlbum(path.join(artdir, state.selAlbs[0]), state);
+    if (nodirs) // if not, play it art is also album
+      play = _.partial(this.selectAlbum, artdir)
+    else if (selAlbs.length == 1)
+      play = _.partial(this.selectAlbum, path.join(artdir, selAlbs[0]));
 
-    this.setState(state);
+    this.setState({
+      selArt: art,
+      selAlbs: selAlbs,
+      showAlbs: true
+    }, play)
   },
 
-  match(input, opt) {
-    return _.startsWith(_.toLower(opt), _.toLower(input));
-  },
-
-  playNext: function(state) {
-    var state = _.clone(this.state),
-        next = state.albNum + 1;
-
-    if (next < state.albs.length)
-      this.playAlbum(
-        path.join(state.arts[state.art], state.albs[next]), state
-      );
-  },
-
-  playAlbum: function(alb, state, num) {
-    if (!num)
-      num = 0;
-
-    state.art = state.selArt;
-    state.albs = state.selAlbs;
-    state.trackNum = num;
-    state.tracks = lib.loadTracks(alb);
-    state.track = path.basename(state.tracks[num]);
-    state.alb = path.basename(alb);
-    state.albNum = _.indexOf(state.albs, state.alb);
-    state.sel = false;
-
-    this.setState(state);
-    lib.stop();
-    this.playTrack(state.tracks[num], num);
-    // track passed due to slow state update
-    lib.saveData([state.art, state.alb, num]);
-  },
 
   selectAlbum(alb) {
-    var state = _.clone(this.state);
-    this.playAlbum(path.join(state.arts[state.selArt], alb), state);
+    this.setState({
+      sel: false,
+      art: this.state.selArt,
+      albs: this.state.selAlbs,
+    }, _.partial(this.playAlbum, alb)
+    );
   },
 
+  playNextAlbum: function(state) {
+    var next = this.state.albNum + 1;
 
-  playTrack: function(track, num) {
-    if (!track) {
-      if (!num)
+    if (next < this.state.albs.length)
+      this.playAlbum(this.state.albs[next]);
+  },
+
+  playAlbum: function(alb, num = 0) {
+    var state = _.clone(this.state),
+        albPath = path.join(state.arts[state.art], alb)
+
+    state.alb = alb;
+    state.albNum = _.indexOf(state.albs, state.alb);
+    state.tracks = lib.loadTracks(albPath);
+    this.setState(state, _.partial(this.playTrack, num));
+  },
+
+  playTrack: function(num) {
+      if (_.isNil(num))
         num = this.state.trackNum + 1;
 
-      if (num < this.state.tracks.length)
-        track = this.state.tracks[num];
-      else {
-        this.playNext();
-        return;
-      }
+    if (num >= this.state.tracks.length) {
+      this.playNextAlbum();
+      return;
     }
-
-    lib.play(track, this.playTrack);
-    this.setState({trackNum: num, track: path.basename(track)});
-    if (this.state.art)
-      lib.saveData([this.state.art, this.state.alb, num]);
-  },
-
-  jump: function(num) {
-    lib.stop()
-    this.playTrack(this.state.tracks[num], num);
-    // track and num can't be passed via state
+    else {
+      let track = this.state.tracks[num];
+      lib.play(track, this.playTrack);
+      this.setState({trackNum: num, track: path.basename(track)});
+      if (this.state.art)
+        lib.saveData([this.state.art, this.state.alb, num]);
+    }
   },
 
 
@@ -205,9 +168,22 @@ module.exports = React.createClass({
         });
 
     if (chosen.length == 1)
-      this.selected(chosen[0]);
+      this.selectArt(chosen[0]);
 
     this.setState({chosen: chosen});
+  },
+
+  current: function() {
+    var state = _.clone(this.state),
+        lines = lib.current();
+
+    _.each(['length', 'played', 'bitrate'], function(key, n) {
+      state[key] = lines[n]
+    });
+
+    state.bitrate += " kbps"
+
+    this.setState(state);
   }
 
 });

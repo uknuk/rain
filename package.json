@@ -2,6 +2,7 @@
   "name": "rain",
   "private": true,
   "main": "index.html",
+  "description" : "Using global nw@0.17.4-sdk",
   "window": {
     "toolbar": false,
     "width": 1024,
@@ -12,7 +13,6 @@
     "watch": "watchify --bare -t [babelify] src/index.jsx -o build/app.js -dv"
   },
   "dependencies": {
-    "//": "nw@0.17.4-sdk",
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
     "bootstrap": "3.3.7",

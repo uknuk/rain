@@ -84,9 +84,9 @@ comp.Albums = function(props) {
     return null;
 
   return (
-    <div className="albs">
+    <div className="container albs">
       <p></p>
-      {state.selArt + ': '}
+      <span className="selart">{state.selArt + ': '}</span>
       {
         _.map(state.selAlbs || state.albs, function(alb, n) {
           return (

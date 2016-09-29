@@ -108,6 +108,7 @@ lib.loadAlbum = function(alb) {
 
 lib.play = function(track, callback) {
   var cmd = this.isLinux ? 'audacious -hqE "' : 'afplay "';
+  lib.stop();
   cproc.exec(cmd + track + '"', function(err, stdout, stderr) {
     if (!err)
       callback();
@@ -158,6 +159,10 @@ lib.seconds = function(time) {
     ar, (sum, val, n) => sum + val*Math.pow(60,n), 0
   );
 }
+
+// lib.match = function(input, opt) {
+//   return _.startsWith(_.toLower(opt), _.toLower(input));
+// },
 
 
 
