@@ -66,7 +66,7 @@ module.exports = React.createClass({
             if (self.state.sel)
               self.setState({
                 sel: false,
-                selArt: null,
+                selArt: this.state.art,
                 selAlbs: null,
                 showAlbs: true
               });
@@ -82,6 +82,10 @@ module.exports = React.createClass({
             var cmd = lib.isPaused() ? 'play' : 'pause';
             lib.ctrlPlay(cmd)
             self.setState({pause: cmd == 'pause'});
+          },
+          c: function() {
+            lib.stop();
+            global.nw.App.closeAllWindows();
           }
         };
 

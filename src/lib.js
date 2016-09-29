@@ -160,9 +160,6 @@ lib.seconds = function(time) {
   );
 }
 
-// lib.match = function(input, opt) {
-//   return _.startsWith(_.toLower(opt), _.toLower(input));
-// },
 
 
 

@@ -6,25 +6,34 @@ var comp = exports,
 
 
 comp.Info = function(props) {
-  var state = props.state;
 
   if (!props.display)
     return null;
+  else {
+    const maxChars = 160;
+    let state = props.state,
+        chars = _.reduce(
+          _.map(props.fields, (f) => state[f]),
+          (sum, val) => sum + (val ? val.length : 0),
+          0
+        ),
+        size = Math.max(Math.min(maxChars/chars, 3), 1.5) + 'vw';
 
-  return (
-    <div className="container">
-      {
+    return (
+      <div className="container">
+        {
         _.map(props.fields, function(key, n) {
-          return <span key={n} className={key}> {(state[key] || '') + ' '} </span>;
+        return <span key={n} className={key} style={{fontSize: size}}> {(state[key] || '') + ' '} </span>;
         })
-       }
+        }
 
       { state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
 
       <comp.Progress played={state.played} length={state.length} />
       <p/>
-    </div>
-  );
+      </div>
+    );
+  }
 }
 
 comp.Progress = function(props) {
@@ -66,7 +75,7 @@ comp.Tracks = function(props) {
           return (
             <comp.Button key={n}
                         type = {n == props.state.trackNum ? "current" : "track"}
-                        name={track} limit="50"
+                        name={track} limit="45"
                         onClick = {_.partial(props.onClick, n) }
             />
           )
