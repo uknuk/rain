@@ -12,18 +12,14 @@ comp.Info = function(props) {
   else {
     const maxChars = 160;
     let state = props.state,
-        chars = _.reduce(
-          _.map(props.fields, (f) => state[f]),
-          (sum, val) => sum + (val ? val.length : 0),
-          0
-        ),
-        size = Math.max(Math.min(maxChars/chars, 3), 1.5) + 'vw';
+        chars = _.sumBy(_.map(props.fields, (f) => state[f]), (val) => val ? val.length : 0),
+        fsize = lib.fsize(maxChars/chars, 3, 1) + 'vw';
 
     return (
       <div className="container">
         {
         _.map(props.fields, function(key, n) {
-        return <span key={n} className={key} style={{fontSize: size}}> {(state[key] || '') + ' '} </span>;
+        return <span key={n} className={key} style={{fontSize: fsize}}> {(state[key] || '') + ' '} </span>;
         })
         }
 
@@ -38,7 +34,7 @@ comp.Info = function(props) {
 
 comp.Progress = function(props) {
   if (!props.played || props.length == "0:00")
-    return null;
+    return <p/>;
 
   return (
     <div className="col-sm-12">
@@ -63,21 +59,22 @@ comp.Progress = function(props) {
 }
 
 comp.Tracks = function(props) {
-  var state = props.state;
 
-  if (state.sel || !state.tracks)
+  if (props.state.sel || !props.state.tracks)
     return null;
-
+ 
   return (
     <div>
       {
-        _.map(state.tracks, function(track, n) {
+        _.map(props.tracks, function(track, n) {
           return (
-            <comp.Button key={n}
-                        type = {n == props.state.trackNum ? "current" : "track"}
-                        name={track} limit="45"
-                        onClick = {_.partial(props.onClick, n) }
-            />
+            <button key={n}
+                    style={{fontSize: lib.fsize(props.fsize, 2.5, 1.25) + 'vw'}}
+                    className = {n == props.state.trackNum ? "current" : "track"}
+                    onClick = {_.partial(props.onClick, n) }
+            >
+              {track}
+            </button>
           )
         })
       }
@@ -89,27 +86,33 @@ comp.Tracks = function(props) {
 comp.Albums = function(props) {
   var state = props.state;
 
-  if (!(state.showAlbs && (state.albs || state.selAlbs)))
+  if (!(state.showAlbs && props.albs))
     return null;
+  else {
+    let albs = state.selAlbs || state.albs,
+        fsize = lib.fsize(props.fsize, 3, 1.5);
 
-  return (
-    <div className="container albs">
-      <p></p>
-      <span className="selart">{state.selArt + ': '}</span>
-      {
-        _.map(state.selAlbs || state.albs, function(alb, n) {
-          return (
-            <comp.Button key={n}
-                        type = {n == state.albNum && !state.sel ? "current" : "alb"}
-                        name={alb} limit="40"
-                        onClick = {_.partial(props.onClick, alb)}
-            />
-          )
-        })
-      }
-            <p></p>
-    </div>
-  );
+    return (
+      <div className="container albs">
+        <p></p>
+        <span style={{fontSize: fsize + 0.5 + 'vw'}}>{state.selArt + ': '}</span>
+        {
+          _.map(props.albs, function(alb, n) {
+            return (
+              <button key={n}
+                      style={{fontSize: fsize + 'vw'}}
+                      className = {n == state.albNum && !state.sel ? "current" : "alb"}
+                      onClick = {_.partial(props.onClick, albs[n])}
+              >
+              {alb}
+              </button>
+            )
+          })
+        }
+              <p/>
+      </div>
+    );
+  }
 }
 
 comp.Artists = function(props) {
@@ -121,10 +124,12 @@ comp.Artists = function(props) {
       {
         _.map(props.arts.sort(), function(art, n) {
           return (
-            <comp.Button key={n} type="art"
-                        name={art} limit="20"
-                        onClick = { _.partial(props.onClick, art)}
-            />
+            <button key={n}
+                    className="art"
+                    onClick = { _.partial(props.onClick, art)}
+            >
+            {lib.strip(art, 20)}
+            </button>
           )
         })
       }
@@ -132,15 +137,4 @@ comp.Artists = function(props) {
   );
 }
 
-comp.Button = function(props) {
-  return (
-    <button onClick={props.onClick} className={props.type} >
-      {lib.strip(props.name).substring(0, props.limit)}
-    </button>
-  );
-};
 
-
-comp.Pause = function() {
-  return (<span className="glyphicon glyphicon-pause"></span>);
-};

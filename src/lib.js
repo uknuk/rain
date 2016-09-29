@@ -64,9 +64,17 @@ lib.sort = function(albs) {
   });
 };
 
+lib.base = (name) => path.basename(name, path.extname(name));
 
-lib.strip = function(name) {
-  return path.basename(name, path.extname(name));
+lib.fsize = (size, max, min) => Math.max(Math.min(size, max), min);
+
+lib.strip = function(name, limit) {
+  words = name.split(/\s+|\_+|\-+/),
+  sizes = _.reduce(words, function(acc, w) {
+    acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + w.length);
+    return acc;
+  }, [])
+  return _.join(_.filter(words, (w, n) => sizes[n] < limit)," ");
 };
 
 lib.loadArts = function() {
@@ -159,6 +167,7 @@ lib.seconds = function(time) {
     ar, (sum, val, n) => sum + val*Math.pow(60,n), 0
   );
 }
+
 
 
 
