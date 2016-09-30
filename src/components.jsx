@@ -4,26 +4,23 @@ var comp = exports,
     path = require('path'),
     lib = require('./lib.js');
 
-
 comp.Info = function(props) {
-
   if (!props.display)
     return null;
   else {
-    const maxChars = 160;
     let state = props.state,
-        chars = _.sumBy(_.map(props.fields, (f) => state[f]), (val) => val ? val.length : 0),
-        fsize = lib.fsize(maxChars/chars, 3, 1) + 'vw';
+        chars = _.sumBy(props.fields, (f) => state[f] ? state[f].length : 0);
 
     return (
       <div className="container">
-        {
-        _.map(props.fields, function(key, n) {
-        return <span key={n} className={key} style={{fontSize: fsize}}> {(state[key] || '') + ' '} </span>;
-        })
-        }
-
-      { state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
+        <div className="info">
+          <span className="art">{state.art + " "}</span>
+          <span className="alb">{state.alb + " "}</span>
+          {chars > 60 ? <p/> : null}
+          <span className="track">{state.track + " "}</span>
+          {state.bitrate ? <span className="bitrate">{state.bitrate + " "}</span> : null}
+          {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
+        </div>
 
       <comp.Progress played={state.played} length={state.length} />
       <p/>
@@ -62,7 +59,7 @@ comp.Tracks = function(props) {
 
   if (props.state.sel || !props.state.tracks)
     return null;
- 
+
   return (
     <div>
       {
@@ -136,5 +133,3 @@ comp.Artists = function(props) {
     </div>
   );
 }
-
-
