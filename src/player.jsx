@@ -19,7 +19,7 @@ module.exports = React.createClass({
     };
 
     _.each(this.fields, function(key) {
-      state[key] = null;
+      state[key] = '';
     });
 
     return state;
@@ -73,7 +73,7 @@ module.exports = React.createClass({
             if (self.state.sel)
               self.setState({
                 sel: false,
-                selArt: this.state.art,
+                selArt: self.state.art,
                 selAlbs: null,
                 showAlbs: true
               });

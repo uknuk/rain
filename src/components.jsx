@@ -9,7 +9,9 @@ comp.Info = function(props) {
     return null;
   else {
     let state = props.state,
-        chars = _.sumBy(props.fields, (f) => state[f] ? state[f].length : 0);
+        chars = _.sumBy(props.fields, (f) => state[f].length),
+        style = state.track.length > 60 ? {fontSize: '24px'} : {};
+    
 
     return (
       <div className="container">
@@ -17,8 +19,10 @@ comp.Info = function(props) {
           <span className="art">{state.art + " "}</span>
           <span className="alb">{state.alb + " "}</span>
           {chars > 60 ? <p/> : null}
-          <span className="track">{state.track + " "}</span>
-          {state.bitrate ? <span className="bitrate">{state.bitrate + " "}</span> : null}
+          <span className="track" style={style}>{state.track + " "}</span>
+          {state.bitrate ? 
+           <span className="bitrate" style={style}>{state.bitrate + " "}</span> 
+           : null}
           {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
         </div>
 
