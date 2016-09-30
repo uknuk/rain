@@ -10,8 +10,8 @@ comp.Info = function(props) {
   else {
     let state = props.state,
         chars = _.sumBy(props.fields, (f) => state[f].length),
-        style = state.track.length > 60 ? {fontSize: '24px'} : {};
-    
+        style = state.track.length > 60 ? {fontSize: '2vw'} : {};
+        // make dynamic from length + played
 
     return (
       <div className="container">
@@ -70,7 +70,7 @@ comp.Tracks = function(props) {
         _.map(props.tracks, function(track, n) {
           return (
             <button key={n}
-                    style={{fontSize: lib.fsize(props.fsize, 2.5, 1.25) + 'vw'}}
+                    style={{fontSize: props.fsize + 'vw'}}
                     className = {n == props.state.trackNum ? "current" : "track"}
                     onClick = {_.partial(props.onClick, n) }
             >
@@ -96,12 +96,12 @@ comp.Albums = function(props) {
     return (
       <div className="container albs">
         <p></p>
-        <span style={{fontSize: fsize + 0.5 + 'vw'}}>{state.selArt + ': '}</span>
+        <span style={{fontSize: props.fsize + 0.5 + 'vw'}}>{state.selArt + ': '}</span>
         {
           _.map(props.albs, function(alb, n) {
             return (
               <button key={n}
-                      style={{fontSize: fsize + 'vw'}}
+                      style={{fontSize: props.fsize + 'vw'}}
                       className = {n == state.albNum && !state.sel ? "current" : "alb"}
                       onClick = {_.partial(props.onClick, albs[n])}
               >

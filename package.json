@@ -9,7 +9,7 @@
     "height": 572
   },
   "scripts": {
-    "build": "browserify --bare -t [ babelify] src/index.jsx -o build/app.js -d; echo 'done'",
+    "build": "browserify --bare -t [ babelify] src/index.jsx -o build/app.js -d",
     "watch": "watchify --bare -t [babelify] src/index.jsx -o build/app.js -dv"
   },
   "dependencies": {

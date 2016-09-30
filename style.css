@@ -14,19 +14,16 @@
     color: brown
 }
 
-/*button {
-    font-size: 14px
-}
-*/
+
 
 button.art {
-    font-size: 12px
+    font-size: 1vw
 }
 
 span.length {
-    font-size: 20px
+    font-size: 2vw
 }
 
 span {
-  font-size: 32px
+  font-size: 3vw
 }

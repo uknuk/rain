@@ -66,7 +66,7 @@ lib.sort = function(albs) {
 
 lib.base = (name) => path.basename(name, path.extname(name));
 
-lib.fsize = (size, max, min) => Math.max(Math.min(size, max), min);
+lib.fsize = (size, range) => Math.max(Math.min(size, range.max), range.min);
 
 lib.strip = function(name, limit) {
   words = name.split(/\s+|\_+|\-+/),
@@ -76,6 +76,8 @@ lib.strip = function(name, limit) {
   }, [])
   return _.join(_.filter(words, (w, n) => sizes[n] < limit)," ");
 };
+
+lib.stripBase = (name, limit) => lib.strip(lib.base(name), limit);
 
 lib.loadArts = function() {
   var buf = fs.readFileSync(path.join(process.env['HOME'],'.mhdirs'), 'utf8'),

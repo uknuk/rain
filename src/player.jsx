@@ -7,7 +7,13 @@ var React = require('react'),
 
 module.exports = React.createClass({
   fields: ['art', 'alb', 'track', 'bitrate'],
-  maxChars: 2000,
+  
+  fsrange: {
+    tracks: {max: 2.5, min: 1.25},
+    albs:   {max: 3, min: 1.5}
+  },
+  
+  maxChars: 1600,
 
   getInitialState: function() {
     var state = {
@@ -49,15 +55,18 @@ module.exports = React.createClass({
 
   render: function() {
     var search = this.state.sel && !this.state.showAlbs,
-        tracks = _.map(this.state.tracks, (tr) => lib.strip(lib.base(tr), 40)),
-        albs = _.map(this.state.selAlbs || this.state.albs, (alb) => lib.strip(alb, 40)),
-        fsize = this.maxChars/_.sumBy(_.flatten([tracks, albs]), (n) => n ? n.length : 0);
+        tracks = _.map(this.state.tracks, (tr) => lib.stripBase(tr, 40)),
+        albs = _.map(this.state.selAlbs || this.state.albs, (alb) => lib.stripBase(alb, 40)),
+        chars = _.map([tracks, albs], (ar) => _.sumBy(ar, (el) => el.length)),
+        fsize = this.maxChars/(chars[0] + chars[1]),        
+        fsTracks = lib.fsize(fsize, this.fsrange.tracks),
+        fsAlbs = lib.fsize(fsize, this.fsrange[chars[0] > chars[1] ? 'albs' : 'tracks']);
 
     return (
       <div>
       <comp.Info display={!search} fields={this.fields} state={this.state} />
-      <comp.Tracks state={this.state} tracks={tracks} fsize={fsize} onClick={this.playTrack} />
-      <comp.Albums state={this.state} albs={albs} fsize={fsize} onClick={this.selectAlbum} />
+      <comp.Tracks state={this.state} tracks={tracks} fsize={fsTracks} onClick={this.playTrack} />
+      <comp.Albums state={this.state} albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />
       {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
       <comp.Artists display={search}
                     arts={this.state.chosen || _.keys(this.state.arts)}
@@ -69,7 +78,7 @@ module.exports = React.createClass({
   keyhandler: function() {
     var self = this,
         fmap = {
-          w: function() {
+          s: function() {
             if (self.state.sel)
               self.setState({
                 sel: false,
@@ -85,12 +94,12 @@ module.exports = React.createClass({
                 arts: lib.loadArts()
               });
           },
-          p: function() {
+          z: function() {
             var cmd = lib.isPaused() ? 'play' : 'pause';
             lib.ctrlPlay(cmd)
             self.setState({pause: cmd == 'pause'});
           },
-          c: function() {
+          q: function() {
             lib.stop();
             global.nw.App.closeAllWindows();
           }
