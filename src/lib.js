@@ -68,16 +68,18 @@ lib.base = (name) => path.basename(name, path.extname(name));
 
 lib.fsize = (size, range) => Math.max(Math.min(size, range.max), range.min) + "vw";
 
-lib.strip = function(name, limit) {
+lib.cut = function(name, limit) {
   words = name.split(/\s+|\_+|\-+/),
   sizes = _.reduce(words, function(acc, w) {
     acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + w.length);
     return acc;
   }, [])
-  return _.join(_.filter(words, (w, n) => sizes[n] < limit)," ");
+  return _.join(_.filter(words, (w, n) => sizes[n] < limit), " ");
 };
 
-lib.stripBase = (name, limit) => lib.strip(lib.base(name), limit);
+lib.shortBase= (name, limit = 40) => lib.cut(lib.base(name), limit);
+
+lib.short = (name, limit = 20) => name.substring(0, lib.cut(name, limit).length)
 
 lib.loadArts = function() {
   var buf = fs.readFileSync(path.join(process.env['HOME'],'.mhdirs'), 'utf8'),
@@ -158,8 +160,7 @@ lib.loadLast = function() {
   }
 }
 
-
-lib.saveData = function(data) {
+lib.save = function(data) {
   fs.writeFileSync(lastFile, data.join('\n'));
 }
 
@@ -169,11 +170,3 @@ lib.seconds = function(time) {
     ar, (sum, val, n) => sum + val*Math.pow(60,n), 0
   );
 }
-
-
-
-
-
-
-
-

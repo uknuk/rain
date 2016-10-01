@@ -7,12 +7,12 @@ var React = require('react'),
 
 module.exports = React.createClass({
   fields: ['art', 'alb', 'track', 'bitrate'],
-  
+
   fsrange: {
     tracks: {max: 2.5, min: 1.25},
     albs:   {max: 3, min: 1.5}
   },
-  
+
   maxChars: 1600,
 
   getInitialState: function() {
@@ -20,6 +20,7 @@ module.exports = React.createClass({
       sel: false,
       showAlbs: true,
       pause: false,
+      bitrate: '',
       played: null,
       length: null
     };
@@ -41,36 +42,37 @@ module.exports = React.createClass({
       this.timer = setInterval(this.current, 1000);
 
     if (num) {
-      let state = {
-        arts: arts,
-        art: art,
-        selArt: art,
-        albs: lib.sort(fs.readdirSync(arts[art]))
-      };
+      let albs = lib.sort(fs.readdirSync(arts[art])),
+          state = {
+            arts: arts,
+            art: art,
+            selArt: art,
+            albs: albs,
+            selAlbs: albs
+          };
 
       this.setState(state, _.partial(this.playAlbum, alb, parseInt(num)));
     }
   },
 
-
   render: function() {
     var search = this.state.sel && !this.state.showAlbs,
-        tracks = _.map(this.state.tracks, (tr) => lib.stripBase(tr, 40)),
-        albs = _.map(this.state.selAlbs || this.state.albs, (alb) => lib.stripBase(alb, 40)),
+        tracks = _.map(this.state.tracks, (tr) => lib.shortBase(tr)),
+        albs = _.map(this.state.selAlbs || this.state.albs, (alb) => lib.shortBase(alb)),
         chars = _.map([tracks, albs], (ar) => _.sumBy(ar, (el) => el.length)),
-        fsize = this.maxChars/(chars[0] + chars[1]),        
+        fsize = this.maxChars/(chars[0] + chars[1]),
         fsTracks = lib.fsize(fsize, this.fsrange.tracks),
         fsAlbs = lib.fsize(fsize, this.fsrange[chars[0] > chars[1] ? 'albs' : 'tracks']);
 
     return (
-      <div container-fluid>
-      <comp.Info display={!search} fields={this.fields} state={this.state} />
-      <comp.Tracks state={this.state} tracks={tracks} fsize={fsTracks} onClick={this.playTrack} />
-      <comp.Albums state={this.state} albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />
-      {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
-      <comp.Artists display={search}
-                    arts={this.state.chosen || _.keys(this.state.arts)}
-                    onClick={this.selectArt} />
+      <div>
+        <comp.Info display={!search} fields={this.fields} state={this.state} />
+        <comp.Tracks state={this.state} tracks={tracks} fsize={fsTracks} onClick={this.playTrack} />
+        <comp.Albums state={this.state} albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />
+        {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
+        <comp.Artists display={search}
+                      arts={this.state.chosen || _.keys(this.state.arts)}
+                      onClick={this.selectArt} />
       </div>
     );
   },
@@ -137,7 +139,6 @@ module.exports = React.createClass({
     }, play)
   },
 
-
   selectAlbum(alb) {
     this.setState({
       sel: false,
@@ -177,10 +178,9 @@ module.exports = React.createClass({
       lib.play(track, this.playTrack);
       this.setState({trackNum: num, track: path.basename(track)});
       if (this.state.art)
-        lib.saveData([this.state.art, this.state.alb, num]);
+        lib.save([this.state.art, this.state.alb, num]);
     }
   },
-
 
   filter: function(ev) {
     var chosen = _.filter(_.keys(this.state.arts), function(art) {

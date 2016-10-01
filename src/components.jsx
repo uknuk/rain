@@ -9,25 +9,19 @@ comp.Info = function(props) {
     return null;
   else {
     let state = props.state,
-        chars = _.sumBy(props.fields, (f) => state[f].length),
-        style = state.track.length > 60 ? {fontSize: '2vw'} : {};
-        // make dynamic from length + played
+        over = state.track.length + state.bitrate.length > 60,
+        size = over ? "medium" : "large";
 
     return (
       <div className="container">
-        <div className="info">
-          <span className="art">{state.art + " "}</span>
-          <span className="alb">{state.alb + " "}</span>
-          {chars > 60 ? <p/> : null}
-          <span className="track" style={style}>{state.track + " "}</span>
-          {state.bitrate ? 
-           <span className="bitrate" style={style}>{state.bitrate + " "}</span> 
-           : null}
-          {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
-        </div>
+        <span className="art large">{state.art + " "}</span>
+        <span className="alb large">{state.alb + " "}</span>
+        {over ? <p/> : null}
+        <span className={"track " + size}>{state.track + " " + state.bitrate}</span>
+        {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
 
-      <comp.Progress played={state.played} length={state.length} />
-      <p/>
+        <comp.Progress played={state.played} length={state.length} />
+        <p/>
       </div>
     );
   }
@@ -47,13 +41,13 @@ comp.Progress = function(props) {
                       minWidth: "2em"
                       }}
                >
-            <span className="played">{props.played}</span>
+            <span className="played medium">{props.played}</span>
           </div>
         </div>
       </div>
 
       <div className="col-sm-2">
-        <span className="length">{props.length}</span>
+        <span className="length medium">{props.length}</span>
       </div>
     </div>
   );
@@ -70,7 +64,6 @@ comp.Tracks = function(props) {
         _.map(props.tracks, function(track, n) {
           return (
             <button key={n}
-                    
                     className = {n == props.state.trackNum ? "current" : "track"}
                     onClick = {_.partial(props.onClick, n) }
             >
@@ -119,15 +112,12 @@ comp.Artists = function(props) {
     return null;
 
   return (
-    <div>
+    <div className = "art small">
       {
         _.map(props.arts.sort(), function(art, n) {
           return (
-            <button key={n}
-                    className="art"
-                    onClick = { _.partial(props.onClick, art)}
-            >
-            {lib.strip(art, 20)}
+            <button key={n} onClick = { _.partial(props.onClick, art)} >
+            {lib.short(art)}
             </button>
           )
         })
