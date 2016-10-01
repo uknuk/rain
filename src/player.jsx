@@ -63,7 +63,7 @@ module.exports = React.createClass({
         fsAlbs = lib.fsize(fsize, this.fsrange[chars[0] > chars[1] ? 'albs' : 'tracks']);
 
     return (
-      <div>
+      <div container-fluid>
       <comp.Info display={!search} fields={this.fields} state={this.state} />
       <comp.Tracks state={this.state} tracks={tracks} fsize={fsTracks} onClick={this.playTrack} />
       <comp.Albums state={this.state} albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />

@@ -1,29 +1,32 @@
 .art, .track, .albs, .length {
-    color: blue
+    color: blue;
 }
 
 .alb {
-    color: green
+    color: green;
 }
 
 .current, .status {
-    color: red
+    color: red;
 }
 
 .played, .bitrate {
-    color: brown
+    color: brown;
 }
-
-
 
 button.art {
-    font-size: 1vw
+    font-size: 1.25vw;
 }
 
-span.length {
-    font-size: 2vw
+.length, .played {
+    font-size: 2vw;
+}
+
+span.bitrate {
+    white-space: nowrap;
+    font-size: 2.5vw;
 }
 
 span {
-  font-size: 3vw
+  font-size: 3vw;
 }

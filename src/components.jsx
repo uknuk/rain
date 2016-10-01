@@ -38,7 +38,7 @@ comp.Progress = function(props) {
     return <p/>;
 
   return (
-    <div className="col-sm-12">
+    <div className="row">
       <div className="col-sm-10">
         <div className="progress">
           <div className="progress-bar"
@@ -47,7 +47,7 @@ comp.Progress = function(props) {
                       minWidth: "2em"
                       }}
                >
-            {props.played}
+            <span className="played">{props.played}</span>
           </div>
         </div>
       </div>
@@ -65,12 +65,12 @@ comp.Tracks = function(props) {
     return null;
 
   return (
-    <div>
+    <div className="container-fluid" style={{fontSize: props.fsize}}>
       {
         _.map(props.tracks, function(track, n) {
           return (
             <button key={n}
-                    style={{fontSize: props.fsize + 'vw'}}
+                    
                     className = {n == props.state.trackNum ? "current" : "track"}
                     onClick = {_.partial(props.onClick, n) }
             >
@@ -90,18 +90,16 @@ comp.Albums = function(props) {
   if (!(state.showAlbs && props.albs))
     return null;
   else {
-    let albs = state.selAlbs || state.albs,
-        fsize = lib.fsize(props.fsize, 3, 1.5);
+    let albs = state.selAlbs || state.albs;
 
     return (
-      <div className="container albs">
+      <div className="container-fluid albs" style={{fontSize: props.fsize}}>
         <p></p>
-        <span style={{fontSize: props.fsize + 0.5 + 'vw'}}>{state.selArt + ': '}</span>
+        <span >{state.selArt + ': '}</span>
         {
           _.map(props.albs, function(alb, n) {
             return (
               <button key={n}
-                      style={{fontSize: props.fsize + 'vw'}}
                       className = {n == state.albNum && !state.sel ? "current" : "alb"}
                       onClick = {_.partial(props.onClick, albs[n])}
               >

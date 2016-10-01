@@ -66,7 +66,7 @@ lib.sort = function(albs) {
 
 lib.base = (name) => path.basename(name, path.extname(name));
 
-lib.fsize = (size, range) => Math.max(Math.min(size, range.max), range.min);
+lib.fsize = (size, range) => Math.max(Math.min(size, range.max), range.min) + "vw";
 
 lib.strip = function(name, limit) {
   words = name.split(/\s+|\_+|\-+/),
