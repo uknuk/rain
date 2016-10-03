@@ -9,11 +9,11 @@ module.exports = React.createClass({
   fields: ['art', 'alb', 'track', 'bitrate'],
 
   fsrange: {
-    tracks: {max: 2.5, min: 1.25},
-    albs:   {max: 3, min: 1.5}
+    tracks: {max: 3, min: 1.25},
+    albs:   {max: 4, min: 1.5}
   },
 
-  maxChars: 1600,
+  maxChars: 1000,
 
   getInitialState: function() {
     var state = {

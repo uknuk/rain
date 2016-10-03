@@ -9,45 +9,50 @@ comp.Info = function(props) {
     return null;
   else {
     let state = props.state,
-        over = state.track.length + state.bitrate.length > 60,
-        size = over ? "medium" : "large";
+        length = state.track.length + state.bitrate.length,
+        over = length > 50,
+        fsize = over ?
+                lib.fsize(120/length, {max: 4, min: 2}) : "4vw";
 
     return (
-      <div className="container">
-        <span className="art large">{state.art + " "}</span>
-        <span className="alb large">{state.alb + " "}</span>
-        {over ? <p/> : null}
-        <span className={"track " + size}>{state.track + " " + state.bitrate}</span>
-        {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
+      <div className="container-fluid">
+      <span className="art large">{state.art + " "}</span>
+      <span className="alb large">{state.alb + " "}</span>
+      {over ? <p/> : null}
+      <span className="track " style={{fontSize: fsize}}>
+      {state.track + " " + state.bitrate}
+      </span>
+      {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
 
-        <comp.Progress played={state.played} length={state.length} />
-        <p/>
+      <comp.Progress played={state.played} length={state.length} high={!over}/>
+      <p/>
       </div>
     );
   }
 }
 
 comp.Progress = function(props) {
+  var high = props.high ? "high" : null;
   if (!props.played || props.length == "0:00")
     return <p/>;
 
   return (
     <div className="row">
       <div className="col-sm-10">
-        <div className="progress">
-          <div className="progress-bar"
+        <div className={"progress " + high} >
+          <div className={"progress-bar " + high}
                style={{
                       width: lib.seconds(props.played)/lib.seconds(props.length)*100 + "%",
                       minWidth: "2em"
                       }}
                >
-            <span className="played medium">{props.played}</span>
+            <span className="played">{props.played}</span>
           </div>
         </div>
       </div>
 
       <div className="col-sm-2">
-        <span className="length medium">{props.length}</span>
+        <span className={"length " + (props.high ? "medium" : "small")}>{props.length}</span>
       </div>
     </div>
   );

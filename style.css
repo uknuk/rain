@@ -14,22 +14,27 @@
   color: brown;
 }
 
-/* button.art { */
-/*   font-size: 1.25vw; */
-/* } */
-
 span.track {
   white-space: nowrap;
 }
 
 .large {
-  font-size: 3vw;
+  font-size: 4vw;
 }
 
 .medium {
-  font-size: 2vw;
+  font-size: 3vw;
 }
 
 .small {
   font-size: 1.25vw;
+}
+
+.progress.high {
+  height: 40px;
+}
+
+.progress-bar.high {
+  line-height: 40px;
+  font-size: 3vw;
 }
