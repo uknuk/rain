@@ -58,18 +58,26 @@ module.exports = React.createClass({
   render: function() {
     var search = this.state.sel && !this.state.showAlbs,
         tracks = _.map(this.state.tracks, (tr) => lib.shortBase(tr)),
-        albs = _.map(this.state.selAlbs || this.state.albs, (alb) => lib.shortBase(alb)),
+        albs = _.map(
+          this.state.selAlbs || this.state.albs, (alb) => lib.shortBase(alb)
+        ),
         chars = _.map([tracks, albs], (ar) => _.sumBy(ar, (el) => el.length)),
         fsize = this.maxChars/(chars[0] + chars[1]),
         fsTracks = lib.fsize(fsize, this.fsrange.tracks),
-        fsAlbs = lib.fsize(fsize, this.fsrange[chars[0] > chars[1] ? 'albs' : 'tracks']);
+        fsAlbs = lib.fsize(
+          fsize, this.fsrange[chars[0] > chars[1] ? 'albs' : 'tracks']
+        );
 
     return (
-      <div>
+      <div className="container-fluid">
         <comp.Info display={!search} fields={this.fields} state={this.state} />
-        <comp.Tracks state={this.state} tracks={tracks} fsize={fsTracks} onClick={this.playTrack} />
-        <comp.Albums state={this.state} albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />
-        {search ? <input type='search' onChange={this.filter} autoFocus /> : null}
+        <comp.Albums state={this.state}
+                     albs={albs} fsize={fsAlbs} onClick={this.selectAlbum} />
+        <comp.Tracks state={this.state}
+                     tracks={tracks} fsize={fsTracks}
+                     onClick={this.playTrack} />
+        {search ?
+         <input type='search' onChange={this.filter} autoFocus /> : null}
         <comp.Artists display={search}
                       arts={this.state.chosen || _.keys(this.state.arts)}
                       onClick={this.selectArt} />
@@ -104,7 +112,9 @@ module.exports = React.createClass({
           q: function() {
             lib.stop();
             global.nw.App.closeAllWindows();
-          }
+          },
+          d: () => lib.volume("-"),
+          u: () => lib.volume("+")
         };
 
     return function(e) {

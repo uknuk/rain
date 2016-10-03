@@ -127,6 +127,13 @@ lib.play = function(track, callback) {
   });
 }
 
+lib.volume = function(dir) {
+  var delta = parseInt(dir + 10),
+  level = parseInt(lib.audtool("get-volume")) + delta;
+  lib.audtool("set-volume " + level);
+}
+
+
 lib.stop = function() {
   var cmd = "pkill ",
       player = lib.isLinux ? "audacious" : "afplay";

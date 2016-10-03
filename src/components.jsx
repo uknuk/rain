@@ -12,20 +12,18 @@ comp.Info = function(props) {
         length = state.track.length + state.bitrate.length,
         over = length > 50,
         fsize = over ?
-                lib.fsize(120/length, {max: 4, min: 2}) : "4vw";
+                lib.fsize(120/length, {max: 4, min: 1.5}) : "4vw";
 
     return (
-      <div className="container-fluid">
-      <span className="art large">{state.art + " "}</span>
-      <span className="alb large">{state.alb + " "}</span>
-      {over ? <p/> : null}
-      <span className="track " style={{fontSize: fsize}}>
-      {state.track + " " + state.bitrate}
-      </span>
-      {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
+      <div>
+        <span className="art large">{state.art + " "}</span>
+        <span className="alb large">{state.alb + " "}</span>
+        <span className="track " style={{fontSize: fsize}}>
+          {state.track + " " + state.bitrate}
+        </span>
+        {state.pause ? <span className="glyphicon glyphicon-pause" /> : null }
 
-      <comp.Progress played={state.played} length={state.length} high={!over}/>
-      <p/>
+        <comp.Progress played={state.played} length={state.length} high={!over}/>
       </div>
     );
   }
@@ -64,7 +62,7 @@ comp.Tracks = function(props) {
     return null;
 
   return (
-    <div className="container-fluid" style={{fontSize: props.fsize}}>
+    <div style={{fontSize: props.fsize}}>
       {
         _.map(props.tracks, function(track, n) {
           return (
@@ -77,7 +75,6 @@ comp.Tracks = function(props) {
           )
         })
       }
-            <p></p>
     </div>
   );
 }
@@ -91,9 +88,9 @@ comp.Albums = function(props) {
     let albs = state.selAlbs || state.albs;
 
     return (
-      <div className="container-fluid albs" style={{fontSize: props.fsize}}>
-        <p></p>
-        <span >{state.selArt + ': '}</span>
+      <div className="albs" style={{fontSize: props.fsize}}>
+        { state.selArt != state.art ?
+          <span >{state.selArt + ': '}</span> : null }
         {
           _.map(props.albs, function(alb, n) {
             return (
@@ -109,6 +106,7 @@ comp.Albums = function(props) {
               <p/>
       </div>
     );
+
   }
 }
 
